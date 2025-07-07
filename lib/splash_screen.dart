@@ -15,7 +15,16 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     Timer(const Duration(seconds: 3), () {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => widget.nextScreen),
+        PageRouteBuilder(
+          pageBuilder: (_, __, ___) => widget.nextScreen,
+          transitionsBuilder: (_, animation, __, child) {
+            return FadeTransition(
+              opacity: animation,
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 800),
+        ),
       );
     });
   }
@@ -25,7 +34,7 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       body: SizedBox.expand(
         child: Image.asset(
-          'assets/Title.png',
+          'assets/images/Title.png',
           fit: BoxFit.cover,
         ),
       ),

@@ -21,7 +21,16 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - assets/Title.png
+    - assets/images/Title.png
+    - assets/images/background.png
+    - assets/images/Logo.png
+  fonts:
+    - family: SofiaSansCondensed
+      fonts:
+        - asset: assets/fonts/SofiaSansCondensed-SemiBoldItalic.ttf
+    - family: RobotoCondensed
+      fonts:
+        - asset: assets/fonts/Roboto_Condensed-SemiBold.ttf
 
 flutter_native_splash:
   color: "#FF6B35"
