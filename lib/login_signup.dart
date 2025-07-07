@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'login_screen.dart';
 class LoginSignupScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -54,6 +54,12 @@ class LoginSignupScreen extends StatelessWidget {
                         ),
                       ]
                     ),
+                    SizedBox(height: 1),
+                    Divider(
+                      color: Colors.black54,
+                      thickness: 1,
+                    ),
+                    SizedBox(height: 24),
                     // Sign Up Button
                     ElevatedButton(
                       onPressed: (){
@@ -78,9 +84,22 @@ class LoginSignupScreen extends StatelessWidget {
                       child: Text('Sign Up'),
                     ),
                     SizedBox(height: 20),
-                    ElevatedButton(
+                    // Login Button
+                    ElevatedButton( 
                       onPressed: (){
                         // Navigate to Login Screen
+                        Navigator.of(context).push(
+                          PageRouteBuilder(
+                            pageBuilder: (context, animation, secondaryAnimation) => LoginScreen(),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              return FadeTransition(
+                                opacity: animation,
+                                child: child,
+                              );
+                            },
+                            transitionDuration: Duration(milliseconds: 200),
+                          ),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         minimumSize: Size(158, 45),
