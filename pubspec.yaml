@@ -24,6 +24,7 @@ flutter:
     - assets/images/Title.png
     - assets/images/background.png
     - assets/images/Logo.png
+    - assets/images/back-square.png
   fonts:
     - family: SofiaSansCondensed
       fonts:
