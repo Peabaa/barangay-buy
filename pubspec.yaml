@@ -29,9 +29,11 @@ flutter:
     - family: SofiaSansCondensed
       fonts:
         - asset: assets/fonts/SofiaSansCondensed-SemiBoldItalic.ttf
+        - asset: assets/fonts/SofiaSansCondensed-BoldItalic.ttf
     - family: RobotoCondensed
       fonts:
         - asset: assets/fonts/Roboto_Condensed-SemiBold.ttf
+        - asset: assets/fonts/Roboto_Condensed-BoldItalic.ttf
 
 flutter_native_splash:
   color: "#FF6B35"
@@ -39,5 +41,5 @@ flutter_native_splash:
     color: "#FF6B35"         
     icon_background_color: "#FF6B35"
   android: true
-  ios: false
+  ios: true
   web: false
