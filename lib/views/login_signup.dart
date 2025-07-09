@@ -64,6 +64,18 @@ class LoginSignupScreen extends StatelessWidget {
                     ElevatedButton(
                       onPressed: (){
                         // Navigate to Sign Up Screen
+                        Navigator.of(context).push(
+                          PageRouteBuilder(
+                            pageBuilder: (context, animation, secondaryAnimation) => LoginScreen(isLogin: false),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              return FadeTransition(
+                                opacity: animation,
+                                child: child,
+                              );
+                            },
+                            transitionDuration: Duration(milliseconds: 200),
+                          ),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         minimumSize: Size(158, 45),

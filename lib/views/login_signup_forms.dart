@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class LoginScreen extends StatelessWidget {
   final bool isLogin;
-  const LoginScreen({Key? key, this.isLogin = true}) : super(key: key);
+  const LoginScreen({super.key, this.isLogin = true});
 
   @override
   Widget build(BuildContext context) {
@@ -32,8 +32,8 @@ class LoginScreen extends StatelessWidget {
           Center(
             child: SingleChildScrollView(
               child: Container(
-                margin: EdgeInsets.symmetric(horizontal: 32.0),
-                padding: EdgeInsets.all(16.0),
+                margin: const EdgeInsets.symmetric(horizontal: 32.0),
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -53,7 +53,7 @@ class LoginScreen extends StatelessWidget {
                               ..style = PaintingStyle.stroke
                               ..strokeWidth = 2
                               ..color = Colors.white, // Border color
-                            shadows: [
+                            shadows: const [
                               Shadow(
                                 color: Colors.black26,
                                 offset: Offset(3, 5),
@@ -62,7 +62,7 @@ class LoginScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        Text( // Text Fill Color
+                        const Text( // Text Fill Color
                           'BarangayBuy',
                           style: TextStyle(
                             fontFamily: 'SofiaSansCondensed',
@@ -72,23 +72,23 @@ class LoginScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    SizedBox(height: 1),
-                    Divider(
+                    const SizedBox(height: 1),
+                    const Divider(
                       color: Colors.black54,
                       thickness: 1,
                     ),
-                    SizedBox(height: 24),
+                    const SizedBox(height: 24),
                     // Login/Sign Up Form
                     Container(
                       width: 347,
-                      height: 389,
+                      height: isLogin ? 389 : 520, // Different heights for login vs sign-up
                       decoration: BoxDecoration(
-                        color: Color(0xFFFF5B29).withOpacity(0.57),
+                        color: const Color(0xFFFF5B29).withValues(alpha: 0.57), // Fixed withOpacity
                         borderRadius: BorderRadius.circular(23.0),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            offset: Offset(8, 4),
+                            color: Colors.black.withValues(alpha: 0.2), // Fixed withOpacity
+                            offset: const Offset(8, 4),
                             blurRadius: 6,
                           ),
                         ],
@@ -96,7 +96,7 @@ class LoginScreen extends StatelessWidget {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          SizedBox(height: 20),
+                          const SizedBox(height: 20),
                           Stack(
                             alignment: Alignment.center,
                             children: [
@@ -108,8 +108,8 @@ class LoginScreen extends StatelessWidget {
                                   foreground: Paint()
                                     ..style = PaintingStyle.stroke
                                     ..strokeWidth = 2
-                                    ..color = Color(0xFFA22304), // Border color
-                                  shadows: [
+                                    ..color = const Color(0xFFA22304), // Border color
+                                  shadows: const [
                                     Shadow(
                                       color: Colors.black26,
                                       offset: Offset(3, 5),
@@ -120,7 +120,7 @@ class LoginScreen extends StatelessWidget {
                               ),
                               Text( // Text Fill Color
                                 isLogin ? 'Login Form' : 'Sign Up Form',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontFamily: 'SofiaSansCondensed',
                                   fontSize: 50,
                                   color: Colors.white,
@@ -128,7 +128,7 @@ class LoginScreen extends StatelessWidget {
                               ),
                             ],
                           ), 
-                          SizedBox(height: 10),                         
+                          const SizedBox(height: 10),                         
                           // Toggle Button
                           Container(
                             width: 234,
@@ -136,7 +136,7 @@ class LoginScreen extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: Colors.white,
                               border: Border.all(
-                                color: Color(0xFFA22304),
+                                color: const Color(0xFFA22304),
                                 width: 1,
                               ),
                               borderRadius: BorderRadius.circular(23),
@@ -149,18 +149,18 @@ class LoginScreen extends StatelessWidget {
                                       if (isLogin) {
                                         Navigator.of(context).pushReplacement(
                                           MaterialPageRoute(
-                                            builder: (_) => LoginScreen(isLogin: false),
+                                            builder: (_) => const LoginScreen(isLogin: false),
                                           ),
                                         );
                                       }
                                     },
                                     child: Container(
                                       decoration: BoxDecoration(
-                                        color: !isLogin ? Color(0xFFA22304) : Colors.transparent,
+                                        color: !isLogin ? const Color(0xFFA22304) : Colors.transparent,
                                         borderRadius: BorderRadius.circular(23),
                                       ),
                                       alignment: Alignment.centerLeft,
-                                      padding: EdgeInsets.only(left: 27),
+                                      padding: const EdgeInsets.only(left: 27),
                                       child: Text(
                                         'Sign Up',
                                         style: TextStyle(
@@ -168,7 +168,7 @@ class LoginScreen extends StatelessWidget {
                                           fontSize: 24,
                                           fontWeight: FontWeight.bold,
                                           fontStyle: FontStyle.italic,
-                                          color: !isLogin ? Colors.white : Color(0xFFA22304),
+                                          color: !isLogin ? Colors.white : const Color(0xFFA22304),
                                         ),
                                       ),
                                     ),
@@ -180,18 +180,18 @@ class LoginScreen extends StatelessWidget {
                                       if (!isLogin) {
                                         Navigator.of(context).pushReplacement(
                                           MaterialPageRoute(
-                                            builder: (_) => LoginScreen(isLogin: true),
+                                            builder: (_) => const LoginScreen(isLogin: true),
                                           ),
                                         );
                                       }
                                     },
                                     child: Container(
                                       decoration: BoxDecoration(
-                                        color: isLogin ? Color(0xFFA22304) : Colors.transparent,
+                                        color: isLogin ? const Color(0xFFA22304) : Colors.transparent,
                                         borderRadius: BorderRadius.circular(23),
                                       ),
                                       alignment: Alignment.centerRight,
-                                      padding: EdgeInsets.only(right: 27),
+                                      padding: const EdgeInsets.only(right: 27),
                                       child: Text(
                                         'Login',
                                         style: TextStyle(
@@ -199,7 +199,7 @@ class LoginScreen extends StatelessWidget {
                                           fontSize: 24,
                                           fontWeight: FontWeight.bold,
                                           fontStyle: FontStyle.italic,
-                                          color: isLogin ? Colors.white : Color(0xFFA22304),
+                                          color: isLogin ? Colors.white : const Color(0xFFA22304),
                                         ),
                                       ),
                                     ),
@@ -210,7 +210,7 @@ class LoginScreen extends StatelessWidget {
                           ),
                           // Login form fields
                           if (isLogin) ...[
-                            SizedBox(height: 18),
+                            const SizedBox(height: 18),
                             // Login Email Address Field
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 30.0),
@@ -220,28 +220,28 @@ class LoginScreen extends StatelessWidget {
                                   hintStyle: TextStyle(
                                     fontFamily: 'RobotoCondensed',
                                     fontSize: 16,
-                                    color: Color(0xFFD0D0D0).withOpacity(0.8),
+                                    color: const Color(0xFFD0D0D0).withValues(alpha: 0.8), // Fixed withOpacity
                                     fontWeight: FontWeight.bold,
                                   ),
                                   filled: true,
-                                  fillColor: Colors.white.withOpacity(0.8),
-                                  contentPadding: EdgeInsets.symmetric(vertical: 2, horizontal: 20),
+                                  fillColor: Colors.white.withValues(alpha: 0.8), // Fixed withOpacity
+                                  contentPadding: const EdgeInsets.symmetric(vertical: 2, horizontal: 20),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(23),
-                                    borderSide: BorderSide(
+                                    borderSide: const BorderSide(
                                       color: Color(0xFFA22304),
                                       width: 1,
                                     ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(23),
-                                    borderSide: BorderSide(
+                                    borderSide: const BorderSide(
                                       color: Color(0xFFA22304),
                                       width: 3,
                                     ),
                                   ),
                                 ),
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontFamily: 'RobotoCondensed',
                                   fontSize: 16,
                                   color: Color(0xFFA22304),
@@ -250,7 +250,7 @@ class LoginScreen extends StatelessWidget {
                                 keyboardType: TextInputType.emailAddress,
                               ),
                             ),
-                            SizedBox(height: 10),
+                            const SizedBox(height: 10),
                             // Login Password Field
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 30.0),
@@ -261,28 +261,28 @@ class LoginScreen extends StatelessWidget {
                                   hintStyle: TextStyle(
                                     fontFamily: 'RobotoCondensed',
                                     fontSize: 16,
-                                    color: Color(0xFFD0D0D0).withOpacity(0.8),
+                                    color: const Color(0xFFD0D0D0).withValues(alpha: 0.8), // Fixed withOpacity
                                     fontWeight: FontWeight.bold,
                                   ),
                                   filled: true,
-                                  fillColor: Colors.white.withOpacity(0.8),
-                                  contentPadding: EdgeInsets.symmetric(vertical: 1, horizontal: 20),
+                                  fillColor: Colors.white.withValues(alpha: 0.8), // Fixed withOpacity
+                                  contentPadding: const EdgeInsets.symmetric(vertical: 1, horizontal: 20),
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(23),
-                                    borderSide: BorderSide(
+                                    borderSide: const BorderSide(
                                       color: Color(0xFFA22304),
                                       width: 1,
                                     ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(23),
-                                    borderSide: BorderSide(
+                                    borderSide: const BorderSide(
                                       color: Color(0xFFA22304),
                                       width: 3,
                                     ),
                                   ),
                                 ),
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontFamily: 'RobotoCondensed',
                                   fontSize: 16,
                                   color: Color(0xFFA22304),
@@ -290,7 +290,7 @@ class LoginScreen extends StatelessWidget {
                                 ),
                               ),
                             ),
-                            SizedBox(height: 14),
+                            const SizedBox(height: 14),
                             // Login and Cancel buttons
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 30.0),
@@ -304,9 +304,9 @@ class LoginScreen extends StatelessWidget {
                                         // Implement login logic
                                       },
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: Color(0xFFA22304),
+                                        backgroundColor: const Color(0xFFA22304),
                                         foregroundColor: Colors.white,
-                                        textStyle: TextStyle(
+                                        textStyle: const TextStyle(
                                           fontFamily: 'RobotoCondensed',
                                           fontSize: 20,
                                           fontWeight: FontWeight.bold,
@@ -316,11 +316,11 @@ class LoginScreen extends StatelessWidget {
                                           borderRadius: BorderRadius.circular(23),
                                         ),
                                       ),
-                                      child: Text('Login'),
+                                      child: const Text('Login'),
                                     ),
                                   ),
                                   // Cancel Button
-                                  SizedBox(height: 1),
+                                  const SizedBox(height: 1),
                                   SizedBox(
                                     width: 145,
                                     child: OutlinedButton(
@@ -329,9 +329,9 @@ class LoginScreen extends StatelessWidget {
                                       },
                                       style: OutlinedButton.styleFrom(
                                         backgroundColor: Colors.white,
-                                        foregroundColor: Color(0xFFA22304),
-                                        side: BorderSide(color: Color(0xFFA22304), width: 2),
-                                        textStyle: TextStyle(
+                                        foregroundColor: const Color(0xFFA22304),
+                                        side: const BorderSide(color: Color(0xFFA22304), width: 2),
+                                        textStyle: const TextStyle(
                                           fontFamily: 'RobotoCondensed',
                                           fontSize: 22,
                                           fontWeight: FontWeight.bold,
@@ -340,17 +340,231 @@ class LoginScreen extends StatelessWidget {
                                           borderRadius: BorderRadius.circular(23),
                                         ),
                                       ),
-                                      child: Text('Cancel'),
+                                      child: const Text('Cancel'),
                                     ),
                                   ),
                                 ],
                               ),
                             ),
                           ],
-                          // Place sign up form fields here (JIA'S PART)
+                          // Sign up form fields
                           if (!isLogin) ...[
-                            // Add your sign up form fields here
-                          ],
+                            const SizedBox(height: 18),
+                            // Sign Up UserName Field
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                              child: TextField(
+                                decoration: InputDecoration(
+                                  hintText: 'Username',
+                                  hintStyle: TextStyle(
+                                    fontFamily: 'RobotoCondensed',
+                                    fontSize: 16,
+                                    color: const Color(0xFFD0D0D0).withValues(alpha: 0.8), // Fixed withOpacity
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.white.withValues(alpha: 0.8), // Fixed withOpacity
+                                  contentPadding: const EdgeInsets.symmetric(vertical: 2, horizontal: 20),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(23),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFFA22304),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(23),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFFA22304),
+                                      width: 3,
+                                    ),
+                                  ),
+                                ),
+                                style: const TextStyle(
+                                  fontFamily: 'RobotoCondensed',
+                                  fontSize: 16,
+                                  color: Color(0xFFA22304),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            // Sign Up Email Address Field
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                              child: TextField(
+                                decoration: InputDecoration(
+                                  hintText: 'Email Address',
+                                  hintStyle: TextStyle(
+                                    fontFamily: 'RobotoCondensed',
+                                    fontSize: 16,
+                                    color: const Color(0xFFD0D0D0).withValues(alpha: 0.8), // Fixed withOpacity
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.white.withValues(alpha: 0.8), // Fixed withOpacity
+                                  contentPadding: const EdgeInsets.symmetric(vertical: 2, horizontal: 20),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(23),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFFA22304),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(23),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFFA22304),
+                                      width: 3,
+                                    ),
+                                  ),
+                                ),
+                                style: const TextStyle(
+                                  fontFamily: 'RobotoCondensed',
+                                  fontSize: 16,
+                                  color: Color(0xFFA22304),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                keyboardType: TextInputType.emailAddress,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            // Sign Up Password Field
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                              child: TextField(
+                                obscureText: true,
+                                decoration: InputDecoration(
+                                  hintText: 'Password',
+                                  hintStyle: TextStyle(
+                                    fontFamily: 'RobotoCondensed',
+                                    fontSize: 16,
+                                    color: const Color(0xFFD0D0D0).withValues(alpha: 0.8), // Fixed withOpacity
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.white.withValues(alpha: 0.8), // Fixed withOpacity
+                                  contentPadding: const EdgeInsets.symmetric(vertical: 1, horizontal: 20),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(23),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFFA22304),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(23),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFFA22304),
+                                      width: 3,
+                                    ),
+                                  ),
+                                ),
+                                style: const TextStyle(
+                                  fontFamily: 'RobotoCondensed',
+                                  fontSize: 16,
+                                  color: Color(0xFFA22304),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            //Confirm Password Field
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                              child: TextField(
+                                obscureText: true,
+                                decoration: InputDecoration(
+                                  hintText: 'Confirm Password',
+                                  hintStyle: TextStyle(
+                                    fontFamily: 'RobotoCondensed',
+                                    fontSize: 16,
+                                    color: const Color(0xFFD0D0D0).withValues(alpha: 0.8), // Fixed withOpacity
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.white.withValues(alpha: 0.8), // Fixed withOpacity
+                                  contentPadding: const EdgeInsets.symmetric(vertical: 1, horizontal: 20),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(23),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFFA22304),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(23),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFFA22304),
+                                      width: 3,
+                                    ),
+                                  ),
+                                ),
+                                style: const TextStyle(
+                                  fontFamily: 'RobotoCondensed',
+                                  fontSize: 16,
+                                  color: Color(0xFFA22304),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            // Sign Up and Cancel buttons
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                              child: Column(
+                                children: [
+                                  // Sign Up Button
+                                  SizedBox(
+                                    width: 145,
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        // Implement sign up logic
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color(0xFFA22304),
+                                        foregroundColor: Colors.white,
+                                        textStyle: const TextStyle(
+                                          fontFamily: 'RobotoCondensed',
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(23),
+                                        ),
+                                      ),
+                                      child: const Text('Sign Up'),
+                                    ),
+                                  ),
+                                  // Cancel Button
+                                  const SizedBox(height: 1),
+                                  SizedBox(
+                                    width: 145,
+                                    child: OutlinedButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      style: OutlinedButton.styleFrom(
+                                        backgroundColor: Colors.white,
+                                        foregroundColor: const Color(0xFFA22304),
+                                        side: const BorderSide(color: Color(0xFFA22304), width: 2),
+                                        textStyle: const TextStyle(
+                                          fontFamily: 'RobotoCondensed',
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(23),
+                                        ),
+                                      ),
+                                      child: const Text('Cancel'),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ], 
                         ],
                       ),
                     ),
