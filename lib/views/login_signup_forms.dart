@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'select_barangay.dart';
 
 class LoginScreen extends StatelessWidget {
   final bool isLogin;
@@ -325,7 +326,7 @@ class LoginScreen extends StatelessWidget {
                                     ),
                                   ),
                                   // Cancel Button
-                                  SizedBox(height: relHeight(1)),
+                                  SizedBox(height: relHeight(5)),
                                   SizedBox(
                                     width: relWidth(145),
                                     child: OutlinedButton(
@@ -525,7 +526,15 @@ class LoginScreen extends StatelessWidget {
                                     width: 145,
                                     child: ElevatedButton(
                                       onPressed: () {
-                                        // Implement sign up logic
+                                        Navigator.push(
+                                          context,
+                                          PageRouteBuilder(
+                                            pageBuilder: (context, animation, secondaryAnimation) => SelectBarangay(),
+                                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                                              return FadeTransition(opacity: animation, child: child);
+                                            },
+                                          ),
+                                        );
                                       },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: const Color(0xFFA22304),
@@ -544,7 +553,7 @@ class LoginScreen extends StatelessWidget {
                                     ),
                                   ),
                                   // Cancel Button
-                                  SizedBox(height: relHeight(1)),
+                                  SizedBox(height: relHeight(5)),
                                   SizedBox(
                                     width: 145,
                                     child: OutlinedButton(
