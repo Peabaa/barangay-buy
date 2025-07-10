@@ -3,6 +3,12 @@ import 'login_signup_forms.dart';
 class LoginSignupScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    
+    double relWidth(double dp) => screenWidth * (dp / 412);
+    double relHeight(double dp) => screenHeight * (dp / 915);
+
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
@@ -13,53 +19,53 @@ class LoginSignupScreen extends StatelessWidget {
           ),
           Center(
             child: SingleChildScrollView(
-              child: Container(                
-                margin: EdgeInsets.symmetric(horizontal: 32.0),
-                padding: EdgeInsets.all(16.0),
+              child: Container(
+                margin: EdgeInsets.symmetric(horizontal: relWidth(32)),
+                padding: EdgeInsets.all(relWidth(16)),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Image.asset(
                       'assets/images/Logo.png',
-                      height: 130,
+                      height: relHeight(130),
                     ),
                     Stack(
                       alignment: Alignment.center,
                       children: [
-                        Text( // Text Border Color
+                        Text(
                           'BarangayBuy',
                           style: TextStyle(
                             fontFamily: 'SofiaSansCondensed',
-                            fontSize: 64,
+                            fontSize: relWidth(64),
                             foreground: Paint()
                               ..style = PaintingStyle.stroke
                               ..strokeWidth = 2
-                              ..color = Colors.white, // Border color
+                              ..color = Colors.white,
                             shadows: [
                               Shadow(
                                 color: Colors.black26,
-                                offset: Offset(3, 5),
-                                blurRadius: 12,
+                                offset: Offset(relWidth(3), relHeight(5)),
+                                blurRadius: relWidth(12),
                               ),
                             ],
                           ),
                         ),
-                        Text( // Text Fill Color
+                        Text(
                           'BarangayBuy',
                           style: TextStyle(
                             fontFamily: 'SofiaSansCondensed',
-                            fontSize: 64,
+                            fontSize: relWidth(64),
                             color: Color(0xFFA22304),
-                          )
+                          ),
                         ),
-                      ]
+                      ],
                     ),
-                    SizedBox(height: 1),
+                    SizedBox(height: relHeight(1)),
                     Divider(
                       color: Colors.black54,
-                      thickness: 1,
+                      thickness: relHeight(1),
                     ),
-                    SizedBox(height: 24),
+                    SizedBox(height: relHeight(24)),
                     // Sign Up Button
                     ElevatedButton(
                       onPressed: (){
@@ -78,27 +84,27 @@ class LoginSignupScreen extends StatelessWidget {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        minimumSize: Size(158, 45),
+                        minimumSize: Size(relWidth(158), relHeight(45)),
                         backgroundColor: Colors.white,
                         foregroundColor: Color(0xFFFF5B29),
                         textStyle: TextStyle(
                           fontFamily: 'RobotoCondensed',
-                          fontSize: 30,
+                          fontSize: relWidth(30),
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(3.0),
+                          borderRadius: BorderRadius.circular(relWidth(3)),
                           side: BorderSide(
                             color: Color(0xFFFF5B29),
-                            width: 2.0,
+                            width: relWidth(2),
                           ),
                         ),
                       ),
                       child: Text('Sign Up'),
                     ),
-                    SizedBox(height: 20),
+                    SizedBox(height: relHeight(20)),
                     // Login Button
-                    ElevatedButton( 
-                      onPressed: (){
+                    ElevatedButton(
+                      onPressed: () {
                         // Navigate to Login Screen
                         Navigator.of(context).push(
                           PageRouteBuilder(
@@ -114,18 +120,18 @@ class LoginSignupScreen extends StatelessWidget {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        minimumSize: Size(158, 45),
+                        minimumSize: Size(relWidth(158), relHeight(45)),
                         backgroundColor: Color(0xFFFF5B29),
                         foregroundColor: Colors.white,
                         textStyle: TextStyle(
                           fontFamily: 'RobotoCondensed',
-                          fontSize: 30,
+                          fontSize: relWidth(30),
                         ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(3.0),
+                          borderRadius: BorderRadius.circular(relWidth(3)),
                           side: BorderSide(
                             color: Color(0xFFFF5B29),
-                            width: 2.0,
+                            width: relWidth(2),
                           ),
                         ),
                       ),

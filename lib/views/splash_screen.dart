@@ -31,6 +31,12 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    
+    double relWidth(double dp) => screenWidth * (dp / 412);
+    double relHeight(double dp) => screenHeight * (dp / 915);
+
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
@@ -42,14 +48,14 @@ class _SplashScreenState extends State<SplashScreen> {
           Center(
             child: SingleChildScrollView(
               child: Container(
-                margin: EdgeInsets.symmetric(horizontal: 32.0),
-                padding: EdgeInsets.all(16.0),
+                margin: EdgeInsets.symmetric(horizontal: relWidth(32)),
+                padding: EdgeInsets.all(relWidth(16)),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Image.asset(
                       'assets/images/Logo.png',
-                      height: 130,
+                      height: relHeight(130),
                     ),
                     Stack(
                       alignment: Alignment.center,
@@ -58,16 +64,16 @@ class _SplashScreenState extends State<SplashScreen> {
                           'BarangayBuy',
                           style: TextStyle(
                             fontFamily: 'SofiaSansCondensed',
-                            fontSize: 64,
-                            foreground: Paint()
+                            fontSize: relWidth(64),
+                            foreground: (Paint()
                               ..style = PaintingStyle.stroke
                               ..strokeWidth = 2
-                              ..color = Colors.white, // Border color
+                              ..color = Colors.white), // Border color
                             shadows: [
                               Shadow(
                                 color: Colors.black26,
-                                offset: Offset(3, 5),
-                                blurRadius: 12,
+                                offset: Offset(relWidth(3), relHeight(5)),
+                                blurRadius: relWidth(12),
                               ),
                             ],
                           ),
@@ -76,7 +82,7 @@ class _SplashScreenState extends State<SplashScreen> {
                           'BarangayBuy',
                           style: TextStyle(
                             fontFamily: 'SofiaSansCondensed',
-                            fontSize: 64,
+                            fontSize: relWidth(64),
                             color: Color(0xFFA22304),
                           )
                         ),
@@ -88,8 +94,6 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
           ),
         ]
-        
-        
       ),
     );
   }
