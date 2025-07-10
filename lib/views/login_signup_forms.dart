@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../controllers/auth_controller.dart';
 import 'select_barangay.dart';
+import 'home.dart';
 
 class LoginScreen extends StatefulWidget {
   final bool isLogin;
@@ -243,12 +244,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             Padding(
                               padding: EdgeInsets.symmetric(horizontal: relWidth(30)),
                               child: TextField(
+                                controller: emailController,
                                 decoration: InputDecoration(
                                   hintText: 'Email Address',
                                   hintStyle: TextStyle(
                                     fontFamily: 'RobotoCondensed',
                                     fontSize: relWidth(16),
-                                    color: const Color(0xFFD0D0D0).withValues(alpha: 0.8), // Fixed withOpacity
+                                    color: const Color(0xFFD0D0D0).withOpacity(0.8),
                                     fontWeight: FontWeight.bold,
                                   ),
                                   filled: true,
@@ -283,13 +285,14 @@ class _LoginScreenState extends State<LoginScreen> {
                             Padding(
                               padding: EdgeInsets.symmetric(horizontal: relWidth(30)),
                               child: TextField(
+                                controller: passwordController,
                                 obscureText: true,
                                 decoration: InputDecoration(
                                   hintText: 'Password',
                                   hintStyle: TextStyle(
                                     fontFamily: 'RobotoCondensed',
                                     fontSize: relWidth(16),
-                                    color: const Color(0xFFD0D0D0).withValues(alpha: 0.8), // Fixed withOpacity
+                                    color: const Color(0xFFD0D0D0).withOpacity(0.8),
                                     fontWeight: FontWeight.bold,
                                   ),
                                   filled: true,
@@ -328,8 +331,27 @@ class _LoginScreenState extends State<LoginScreen> {
                                   SizedBox(
                                     width: relWidth(145),
                                     child: ElevatedButton(
-                                      onPressed: () {
-                                        // Implement login logic
+                                      onPressed: () async {
+                                        final email = emailController.text.trim();
+                                        final password = passwordController.text.trim();
+                                        if (email.isEmpty || password.isEmpty) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Please enter email and password.')),
+                                          );
+                                          return;
+                                        }
+                                        final authController = AuthController();
+                                        final result = await authController.login(
+                                          email: email,
+                                          password: password,
+                                          context: context,
+                                        );
+                                        if (result != null) {
+                                          // Login successful, navigate to home
+                                          Navigator.of(context).pushReplacement(
+                                            MaterialPageRoute(builder: (_) => HomePage()),
+                                          );
+                                        }
                                       },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Color(0xFFA22304),
@@ -582,7 +604,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             const SnackBar(content: Text('Sign up successful!')),
                                           );
-                                          Navigator.of(context).pop();
+                                          // Navigate to Select Barangay Screen
+                                          Navigator.of(context).pushReplacement(
+                                            MaterialPageRoute(
+                                              builder: (_) => SelectBarangay(),
+                                            ),
+                                          );
                                         }
                                       },
                                       style: ElevatedButton.styleFrom(

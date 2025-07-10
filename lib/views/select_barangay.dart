@@ -1,4 +1,9 @@
+
 import 'package:flutter/material.dart';
+
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'home.dart';
 
 class SelectBarangay extends StatefulWidget {
   final bool isConfirm;
@@ -181,9 +186,31 @@ class _SelectBarangayState extends State<SelectBarangay> {
                     SizedBox(
                       width: relWidth(128),
                       child: ElevatedButton(
-                        onPressed: selectedBarangay != null ? () {
-                          // Handle confirm action
-                        }: null,
+                        onPressed: selectedBarangay != null
+                            ? () async {
+                                final user = FirebaseAuth.instance.currentUser;
+                                if (user != null) {
+                                  try {
+                                    await FirebaseFirestore.instance
+                                        .collection('users')
+                                        .doc(user.uid)
+                                        .update({'barangay': selectedBarangay});
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Barangay saved!')),
+                                    );
+                                    // Navigate to HomePage
+                                    Navigator.of(context).pushAndRemoveUntil(
+                                      MaterialPageRoute(builder: (_) => const HomePage()),
+                                      (route) => false,
+                                    );
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Failed to save barangay.')),
+                                    );
+                                  }
+                                }
+                              }
+                            : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Color(0xFFA22304),
                           foregroundColor: Colors.white,
