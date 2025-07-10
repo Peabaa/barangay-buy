@@ -1,17 +1,39 @@
 import 'package:flutter/material.dart';
+import '../controllers/auth_controller.dart';
 import 'select_barangay.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   final bool isLogin;
   const LoginScreen({super.key, this.isLogin = true});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
+
+  @override
+  void dispose() {
+    usernameController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    
     double relWidth(double dp) => screenWidth * (dp / 412);
     double relHeight(double dp) => screenHeight * (dp / 915);
+
+    final isLogin = widget.isLogin;
 
     return Scaffold(
       body: Stack(
@@ -357,164 +379,168 @@ class LoginScreen extends StatelessWidget {
                           // Sign up form fields
                           if (!isLogin) ...[
                             const SizedBox(height: 18),
-                            // Sign Up UserName Field
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                              child: TextField(
-                                decoration: InputDecoration(
-                                  hintText: 'Username',
-                                  hintStyle: TextStyle(
-                                    fontFamily: 'RobotoCondensed',
-                                    fontSize: 16,
-                                    color: const Color(0xFFD0D0D0).withOpacity(0.8), // Fixed withOpacity
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  filled: true,
-                                  fillColor: Colors.white.withOpacity(0.8), // Fixed withOpacity
-                                  contentPadding: const EdgeInsets.symmetric(vertical: 2, horizontal: 20),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(23),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFA22304),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(23),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFA22304),
-                                      width: 3,
-                                    ),
-                                  ),
-                                ),
-                                style: const TextStyle(
+                          // Sign Up UserName Field
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                            child: TextField(
+                              controller: usernameController,
+                              decoration: InputDecoration(
+                                hintText: 'Username',
+                                hintStyle: TextStyle(
                                   fontFamily: 'RobotoCondensed',
                                   fontSize: 16,
-                                  color: Color(0xFFA22304),
+                                  color: const Color(0xFFD0D0D0).withOpacity(0.8),
                                   fontWeight: FontWeight.bold,
                                 ),
+                                filled: true,
+                                fillColor: Colors.white.withOpacity(0.8),
+                                contentPadding: const EdgeInsets.symmetric(vertical: 2, horizontal: 20),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(23),
+                                  borderSide: const BorderSide(
+                                    color: Color(0xFFA22304),
+                                    width: 1,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(23),
+                                  borderSide: const BorderSide(
+                                    color: Color(0xFFA22304),
+                                    width: 3,
+                                  ),
+                                ),
+                              ),
+                              style: const TextStyle(
+                                fontFamily: 'RobotoCondensed',
+                                fontSize: 16,
+                                color: Color(0xFFA22304),
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
+                          ),
                             const SizedBox(height: 10),
-                            // Sign Up Email Address Field
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                              child: TextField(
-                                decoration: InputDecoration(
-                                  hintText: 'Email Address',
-                                  hintStyle: TextStyle(
-                                    fontFamily: 'RobotoCondensed',
-                                    fontSize: relWidth(16),
-                                    color: Color(0xFFD0D0D0).withOpacity(0.8),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  filled: true,
-                                  fillColor: Colors.white.withOpacity(0.8),
-                                  contentPadding: EdgeInsets.symmetric(vertical: relHeight(2), horizontal: relWidth(20)),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(relWidth(23)),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFA22304),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(relWidth(23)),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFA22304),
-                                      width: 3,
-                                    ),
-                                  ),
-                                ),
-                                style: const TextStyle(
+                          // Sign Up Email Address Field
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                            child: TextField(
+                              controller: emailController,
+                              decoration: InputDecoration(
+                                hintText: 'Email Address',
+                                hintStyle: TextStyle(
                                   fontFamily: 'RobotoCondensed',
-                                  fontSize: 16,
-                                  color: Color(0xFFA22304),
+                                  fontSize: relWidth(16),
+                                  color: Color(0xFFD0D0D0).withOpacity(0.8),
                                   fontWeight: FontWeight.bold,
                                 ),
-                                keyboardType: TextInputType.emailAddress,
+                                filled: true,
+                                fillColor: Colors.white.withOpacity(0.8),
+                                contentPadding: EdgeInsets.symmetric(vertical: relHeight(2), horizontal: relWidth(20)),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(relWidth(23)),
+                                  borderSide: const BorderSide(
+                                    color: Color(0xFFA22304),
+                                    width: 1,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(relWidth(23)),
+                                  borderSide: const BorderSide(
+                                    color: Color(0xFFA22304),
+                                    width: 3,
+                                  ),
+                                ),
                               ),
+                              style: const TextStyle(
+                                fontFamily: 'RobotoCondensed',
+                                fontSize: 16,
+                                color: Color(0xFFA22304),
+                                fontWeight: FontWeight.bold,
+                              ),
+                              keyboardType: TextInputType.emailAddress,
                             ),
+                          ),
                             const SizedBox(height: 10),
-                            // Sign Up Password Field
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                              child: TextField(
-                                obscureText: true,
-                                decoration: InputDecoration(
-                                  hintText: 'Password',
-                                  hintStyle: TextStyle(
-                                    fontFamily: 'RobotoCondensed',
-                                    fontSize: 16,
-                                    color: const Color(0xFFD0D0D0).withValues(alpha: 0.8), // Fixed withOpacity
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  filled: true,
-                                  fillColor: Colors.white.withValues(alpha: 0.8), // Fixed withOpacity
-                                  contentPadding: const EdgeInsets.symmetric(vertical: 1, horizontal: 20),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(23),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFA22304),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(23),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFA22304),
-                                      width: 3,
-                                    ),
-                                  ),
-                                ),
-                                style: const TextStyle(
+                          // Sign Up Password Field
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                            child: TextField(
+                              controller: passwordController,
+                              obscureText: true,
+                              decoration: InputDecoration(
+                                hintText: 'Password',
+                                hintStyle: TextStyle(
                                   fontFamily: 'RobotoCondensed',
                                   fontSize: 16,
-                                  color: Color(0xFFA22304),
+                                  color: const Color(0xFFD0D0D0).withValues(alpha: 0.8),
                                   fontWeight: FontWeight.bold,
                                 ),
+                                filled: true,
+                                fillColor: Colors.white.withValues(alpha: 0.8),
+                                contentPadding: const EdgeInsets.symmetric(vertical: 1, horizontal: 20),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(23),
+                                  borderSide: const BorderSide(
+                                    color: Color(0xFFA22304),
+                                    width: 1,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(23),
+                                  borderSide: const BorderSide(
+                                    color: Color(0xFFA22304),
+                                    width: 3,
+                                  ),
+                                ),
+                              ),
+                              style: const TextStyle(
+                                fontFamily: 'RobotoCondensed',
+                                fontSize: 16,
+                                color: Color(0xFFA22304),
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
+                          ),
                             const SizedBox(height: 10),
-                            //Confirm Password Field
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 30.0),
-                              child: TextField(
-                                obscureText: true,
-                                decoration: InputDecoration(
-                                  hintText: 'Confirm Password',
-                                  hintStyle: TextStyle(
-                                    fontFamily: 'RobotoCondensed',
-                                    fontSize: 16,
-                                    color: const Color(0xFFD0D0D0).withValues(alpha: 0.8), // Fixed withOpacity
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  filled: true,
-                                  fillColor: Colors.white.withValues(alpha: 0.8), // Fixed withOpacity
-                                  contentPadding: const EdgeInsets.symmetric(vertical: 1, horizontal: 20),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(23),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFA22304),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(23),
-                                    borderSide: const BorderSide(
-                                      color: Color(0xFFA22304),
-                                      width: 3,
-                                    ),
-                                  ),
-                                ),
-                                style: const TextStyle(
+                          //Confirm Password Field
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                            child: TextField(
+                              controller: confirmPasswordController,
+                              obscureText: true,
+                              decoration: InputDecoration(
+                                hintText: 'Confirm Password',
+                                hintStyle: TextStyle(
                                   fontFamily: 'RobotoCondensed',
                                   fontSize: 16,
-                                  color: Color(0xFFA22304),
+                                  color: const Color(0xFFD0D0D0).withValues(alpha: 0.8),
                                   fontWeight: FontWeight.bold,
                                 ),
+                                filled: true,
+                                fillColor: Colors.white.withValues(alpha: 0.8),
+                                contentPadding: const EdgeInsets.symmetric(vertical: 1, horizontal: 20),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(23),
+                                  borderSide: const BorderSide(
+                                    color: Color(0xFFA22304),
+                                    width: 1,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(23),
+                                  borderSide: const BorderSide(
+                                    color: Color(0xFFA22304),
+                                    width: 3,
+                                  ),
+                                ),
+                              ),
+                              style: const TextStyle(
+                                fontFamily: 'RobotoCondensed',
+                                fontSize: 16,
+                                color: Color(0xFFA22304),
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
+                          ),
                             const SizedBox(height: 14),
                             // Sign Up and Cancel buttons
                             Padding(
@@ -525,16 +551,39 @@ class LoginScreen extends StatelessWidget {
                                   SizedBox(
                                     width: 145,
                                     child: ElevatedButton(
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          PageRouteBuilder(
-                                            pageBuilder: (context, animation, secondaryAnimation) => SelectBarangay(),
-                                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                                              return FadeTransition(opacity: animation, child: child);
-                                            },
-                                          ),
+                                      onPressed: () async {
+                                        final username = usernameController.text.trim();
+                                        final email = emailController.text.trim();
+                                        final password = passwordController.text.trim();
+                                        final confirmPassword = confirmPasswordController.text.trim();
+
+                                        if (username.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Please fill in all fields.')),
+                                          );
+                                          return;
+                                        }
+                                        if (password != confirmPassword) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Passwords do not match.')),
+                                          );
+                                          return;
+                                        }
+
+                                        final authController = AuthController();
+                                        final result = await authController.signUp(
+                                          email: email,
+                                          password: password,
+                                          fullName: username,
+                                          phone: '', // No phone field
+                                          context: context,
                                         );
+                                        if (result != null) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Sign up successful!')),
+                                          );
+                                          Navigator.of(context).pop();
+                                        }
                                       },
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: const Color(0xFFA22304),
