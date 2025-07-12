@@ -3,9 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'views/splash_screen.dart';
 import 'views/login_signup.dart';
 
-
-// Pixel 7 reference: 412x915 dp (logical pixels)
-
+// Pixel 7 is the reference phone: 412x915 dp (logical pixels)
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
