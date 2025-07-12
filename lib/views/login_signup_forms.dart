@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../controllers/auth_controller.dart';
 import 'select_barangay.dart';
 import 'home.dart';
+import 'admin_announcements.dart';
 
 class LoginScreen extends StatefulWidget {
   final bool isLogin;
@@ -347,9 +348,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                           context: context,
                                         );
                                         if (result != null) {
-                                          // Login successful, navigate to home
+                                          // Login successful, navigate to admin announcements (Temp)
                                           Navigator.of(context).pushReplacement(
-                                            MaterialPageRoute(builder: (_) => HomePage()),
+                                            MaterialPageRoute(builder: (_) => AdminAnnouncements()),
                                           );
                                         }
                                       },

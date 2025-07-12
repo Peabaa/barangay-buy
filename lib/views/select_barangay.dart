@@ -51,7 +51,7 @@ class _SelectBarangayState extends State<SelectBarangay> {
           Center(
             child: Container(
               width: relWidth(347),
-              height: relHeight(330),
+              height: relHeight(350),
               decoration: BoxDecoration(
                 color: Color(0xFFFF5B29).withOpacity(0.57),
                 borderRadius: BorderRadius.circular(relWidth(23)),
