@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../controllers/auth_controller.dart';
 import 'select_barangay.dart';
 import 'home.dart';
 import 'admin_announcements.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'login_signup.dart';
 
 class LoginScreen extends StatefulWidget {
   final bool isLogin;
@@ -46,21 +47,6 @@ class _LoginScreenState extends State<LoginScreen> {
             'assets/images/background.png',
             fit: BoxFit.cover,
           ),
-          // Back button
-          Positioned(
-            top: relHeight(40),
-            left: relWidth(16),
-            child: GestureDetector(
-              onTap: () {
-                Navigator.of(context).pop();
-              },
-              child: Image.asset(
-                'assets/images/back-square.png',
-                width: relWidth(57),
-                height: relWidth(57),
-              ),
-            ),
-          ),
           Center(
             child: SingleChildScrollView(
               child: Container(
@@ -80,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           'BarangayBuy',
                           style: TextStyle(
                             fontFamily: 'SofiaSansCondensed',
-                            fontSize: relWidth(64),
+                            fontSize: relWidth(63),
                             foreground: Paint()
                               ..style = PaintingStyle.stroke
                               ..strokeWidth = 2
@@ -98,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           'BarangayBuy',
                           style: TextStyle(
                             fontFamily: 'SofiaSansCondensed',
-                            fontSize: relWidth(64),
+                            fontSize: relWidth(63),
                             color: Color(0xFFA22304),
                           ),
                         ),
@@ -675,6 +661,21 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
+              ),
+            ),
+          ),
+          // Back button
+          Positioned(
+            top: relHeight(40),
+            left: relWidth(16),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).pop();
+              },
+              child: Image.asset(
+                'assets/images/back-square.png',
+                width: relWidth(57),
+                height: relWidth(57),
               ),
             ),
           ),

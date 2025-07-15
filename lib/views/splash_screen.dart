@@ -64,7 +64,7 @@ class _SplashScreenState extends State<SplashScreen> {
                           'BarangayBuy',
                           style: TextStyle(
                             fontFamily: 'SofiaSansCondensed',
-                            fontSize: relWidth(64),
+                            fontSize: relWidth(63),
                             foreground: (Paint()
                               ..style = PaintingStyle.stroke
                               ..strokeWidth = 2
@@ -82,7 +82,7 @@ class _SplashScreenState extends State<SplashScreen> {
                           'BarangayBuy',
                           style: TextStyle(
                             fontFamily: 'SofiaSansCondensed',
-                            fontSize: relWidth(64),
+                            fontSize: relWidth(63),
                             color: Color(0xFFA22304),
                           )
                         ),
