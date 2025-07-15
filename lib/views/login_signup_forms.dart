@@ -339,16 +339,18 @@ class _LoginScreenState extends State<LoginScreen> {
                                           if (uid != null) {
                                             final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
                                             final role = doc.data()?['role'];
+                                            final barangay = doc.data()?['barangay'] ?? 'N/A'; // Default if not set
                                             if (role == 'admin') {
                                               Navigator.of(context).pushReplacement(
-                                                MaterialPageRoute(builder: (_) => AdminAnnouncements()),
-                                          );
+                                                MaterialPageRoute(
+                                                  builder: (context) => AdminAnnouncements(selectedBarangay: barangay),
+                                                ),
+                                              );
                                             } else {
-                                              // Login successful, navigate to home
                                               Navigator.of(context).pushReplacement(
                                                 MaterialPageRoute(builder: (_) => HomePage()),
                                               );
-                                            }  
+                                            }
                                           }
                                         }
                                       },

@@ -35,6 +35,10 @@ flutter:
     - assets/images/user.png
     - assets/images/addanounce.png
     - assets/images/noannounce.png
+    - assets/images/UserCircle.png
+    - assets/images/Trash.png
+    - assets/images/arrow-up.png
+    - assets/images/arrow-down.png
   fonts:
     - family: SofiaSansCondensed
       fonts:

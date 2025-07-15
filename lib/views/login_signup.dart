@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'login_signup_forms.dart';
 class LoginSignupScreen extends StatelessWidget {
+  const LoginSignupScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;

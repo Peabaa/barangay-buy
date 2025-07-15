@@ -24,7 +24,7 @@ class AdminHeader extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Current Barangay
-          Container(
+          SizedBox(
             width: relWidth(319),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -33,7 +33,7 @@ class AdminHeader extends StatelessWidget {
                 Padding(
                   padding: EdgeInsets.only(left: relWidth(5)),
                   child: Container(
-                    width: relWidth(174),
+                    width: relWidth(190),
                     height: relHeight(23),
                     decoration: BoxDecoration(
                       color: Color(0xFFA22304).withOpacity(0.8),
@@ -230,4 +230,32 @@ class AdminFooter extends StatelessWidget {
       ),
     );
   }
+}
+
+class AdminAnnouncements extends StatelessWidget {
+  final String selectedBarangay;
+
+  const AdminAnnouncements({super.key, required this.selectedBarangay});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Announcements for $selectedBarangay'),
+      ),
+      body: Center(
+        child: Text('List of announcements for $selectedBarangay'),
+      ),
+    );
+  }
+}
+
+// Example of navigation
+void navigateToAnnouncements(BuildContext context, String barangayName) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => AdminAnnouncements(selectedBarangay: barangayName),
+    ),
+  );
 }
