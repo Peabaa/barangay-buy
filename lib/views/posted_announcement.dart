@@ -180,6 +180,8 @@ class _PostedAnnouncementState extends State<PostedAnnouncement> {
                                     onTap: () async {
                                       // Delete the announcement from Firestore
                                       await FirebaseFirestore.instance
+                                        .collection('users')
+                                        .doc(FirebaseAuth.instance.currentUser!.uid)
                                         .collection('announcements')
                                         .doc(widget.announcementId)
                                         .delete();
@@ -287,7 +289,7 @@ class _PostedAnnouncementState extends State<PostedAnnouncement> {
       'barangay': widget.selectedBarangay,
       'timestamp': FieldValue.serverTimestamp(),
       'adminEmail': user.email,
-      'username': username, // Save the username here!
+      'username': username, 
     });
   }
 }

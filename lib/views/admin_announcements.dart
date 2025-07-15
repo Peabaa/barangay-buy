@@ -177,13 +177,17 @@ class _AdminAnnouncementsState extends State<AdminAnnouncements> {
                                                   .get();
                                               final username = userDoc.data()?['username'] ?? user.email ?? 'Unknown';
 
-                                              await FirebaseFirestore.instance.collection('announcements').add({
-                                                'text': text,
-                                                'barangay': widget.selectedBarangay,
-                                                'timestamp': FieldValue.serverTimestamp(),
-                                                'adminEmail': user.email,
-                                                'username': username,
-                                              });
+                                              await FirebaseFirestore.instance
+                                                .collection('users')
+                                                .doc(user!.uid)
+                                                .collection('announcements')
+                                                .add({
+                                                  'text': text,
+                                                  'barangay': widget.selectedBarangay,
+                                                  'timestamp': FieldValue.serverTimestamp(),
+                                                  'adminEmail': user.email,
+                                                  'username': username,
+                                                });
 
                                               Navigator.of(context).pop();
                                             }
@@ -227,7 +231,10 @@ class _AdminAnnouncementsState extends State<AdminAnnouncements> {
                   Expanded(
                     child: StreamBuilder<QuerySnapshot>(
                       stream: FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(FirebaseAuth.instance.currentUser!.uid)
                           .collection('announcements')
+                          .orderBy('timestamp', descending: true)
                           .snapshots(),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
