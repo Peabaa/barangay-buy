@@ -163,7 +163,7 @@ bool expanded = false;
                               // "Delete Announcement" title
                               Container(
                                 width: relWidth(215),
-                                height: relHeight(17),
+                                height: relHeight(19),
                                 alignment: Alignment.center,
                                 margin: EdgeInsets.only(
                                   top: relHeight(6), 
@@ -219,7 +219,7 @@ bool expanded = false;
                               SizedBox(height: relHeight(15)),
                               GestureDetector(
                                 onTap: () async {
-                                  // Try deleting from both possible locations
+                                  // Deletes from both app and Firebase 
                                   try {
                                     await FirebaseFirestore.instance
                                       .collection('users')
