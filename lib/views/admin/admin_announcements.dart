@@ -4,7 +4,7 @@ import 'admin_header_footer.dart';
 import 'posted_announcement.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'login_signup.dart';
+import '../login_signup.dart';
 
 class AdminAnnouncements extends StatefulWidget {
   final String selectedBarangay;

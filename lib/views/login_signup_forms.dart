@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../controllers/auth_controller.dart';
 import 'select_barangay.dart';
-import 'home.dart';
-import 'admin_announcements.dart';
+import 'user/home.dart';
+import 'admin/admin_announcements.dart';
 import 'login_signup.dart';
 
 class LoginScreen extends StatefulWidget {

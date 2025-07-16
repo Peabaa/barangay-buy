@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'home.dart';
+import 'user/home.dart';
 
 class SelectBarangay extends StatefulWidget {
   final bool isConfirm;

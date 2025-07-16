@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'login_signup.dart'; 
+import '../login_signup.dart'; 
 
 class AdminHeader extends StatelessWidget {
   final double Function(double) relWidth;
