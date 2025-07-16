@@ -7,12 +7,14 @@ class PostedAnnouncement extends StatefulWidget {
   final String username;
   final String selectedBarangay;
   final String announcementId;
+  final Timestamp? timestamp;
   const PostedAnnouncement({
     super.key,
     required this.text,
     required this.username,
     required this.selectedBarangay,
     required this.announcementId, // <-- add this
+    required this.timestamp,
   });
 
   @override
@@ -20,7 +22,26 @@ class PostedAnnouncement extends StatefulWidget {
 }
 
 class _PostedAnnouncementState extends State<PostedAnnouncement> {
-  bool expanded = false;
+String _getFormattedTimestamp(Timestamp? timestamp) {
+  if (timestamp == null) return '';
+  try {
+    // Convert UTC to local time
+    final dateUtc = timestamp.toDate();
+    final date = dateUtc.toLocal();
+    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    final month = months[date.month - 1];
+    int hour = date.hour;
+    final minute = date.minute.toString().padLeft(2, '0');
+    final ampm = hour >= 12 ? 'PM' : 'AM';
+    hour = hour % 12;
+    if (hour == 0) hour = 12;
+    return '$month ${date.day}, ${date.year}, $hour:$minute $ampm';
+  } catch (e) {
+    return '';
+  }
+}
+bool expanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +87,7 @@ class _PostedAnnouncementState extends State<PostedAnnouncement> {
         children: [
           // Username field with user image
           Container(
-            height: relHeight(28),
+            height: relHeight(38),
             margin: EdgeInsets.only(
               top: relHeight(16),
               left: relWidth(10),
@@ -84,18 +105,41 @@ class _PostedAnnouncementState extends State<PostedAnnouncement> {
                   backgroundColor: Colors.transparent,
                 ),
                 SizedBox(width: relWidth(3)),
-                Text(
-                  widget.username,
-                  style: TextStyle(
-                    color: const Color(0xFF611A04),
-                    fontFamily: 'Roboto',
-                    fontSize: relWidth(15),
-                    fontWeight: FontWeight.w400,
-                    fontStyle: FontStyle.italic,
-                    letterSpacing: 0.5,
-                  ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.username,
+                      style: TextStyle(
+                        color: const Color(0xFF611A04),
+                        fontFamily: 'Roboto',
+                        fontSize: relWidth(15),
+                        fontWeight: FontWeight.w400,
+                        fontStyle: FontStyle.italic,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    SizedBox(height: relHeight(2)),
+                    Container(
+                      width: relWidth(130),
+                      height: relHeight(12),
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        _getFormattedTimestamp(widget.timestamp),
+                        style: TextStyle(
+                          color: Color.fromRGBO(0, 0, 0, 0.31),
+                          fontFamily: 'Roboto',
+                          fontSize: relWidth(10),
+                          fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.w400,
+                          height: 1.17164,
+                          letterSpacing: 0.2,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(width: relWidth(59)), // <-- Adjust this value for your desired gap
+                Spacer(),
                 GestureDetector(
                   onTap: () {
                     showDialog(
@@ -173,45 +217,48 @@ class _PostedAnnouncementState extends State<PostedAnnouncement> {
                                 ),
                               ),
                               SizedBox(height: relHeight(15)),
-                              Column(
-                                children: [
-                                  // Centered Delete button
-                                  GestureDetector(
-                                    onTap: () async {
-                                      // Delete the announcement from Firestore
-                                      await FirebaseFirestore.instance
-                                        .collection('users')
-                                        .doc(FirebaseAuth.instance.currentUser!.uid)
-                                        .collection('announcements')
-                                        .doc(widget.announcementId)
-                                        .delete();
-                                      Navigator.of(context).pop(); // Close the dialog
-                                      // Optionally: show a snackbar or refresh the list
-                                    },
-                                    child: Container(
-                                      width: relWidth(133),
-                                      height: relHeight(28),
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFF611A04).withOpacity(0.8),
-                                        borderRadius: BorderRadius.circular(relWidth(3)),
-                                        border: Border.all(
-                                          color: const Color(0xFF611A04),
-                                          width: 1,
-                                        ),
-                                      ),
-                                      alignment: Alignment.center,
-                                      child: Text(
-                                        'Delete',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontFamily: 'Roboto',
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: relWidth(16),
-                                        ),
-                                      ),
+                              GestureDetector(
+                                onTap: () async {
+                                  // Try deleting from both possible locations
+                                  try {
+                                    await FirebaseFirestore.instance
+                                      .collection('users')
+                                      .doc(FirebaseAuth.instance.currentUser!.uid)
+                                      .collection('announcements')
+                                      .doc(widget.announcementId)
+                                      .delete();
+                                  } catch (e) {}
+                                  try {
+                                    await FirebaseFirestore.instance
+                                      .collection('announcements')
+                                      .doc(widget.announcementId)
+                                      .delete();
+                                  } catch (e) {}
+                                  Navigator.of(context).pop();
+                                  setState(() {}); // Refresh UI
+                                },
+                                child: Container(
+                                  width: relWidth(133),
+                                  height: relHeight(28),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF611A04).withOpacity(0.8),
+                                    borderRadius: BorderRadius.circular(relWidth(3)),
+                                    border: Border.all(
+                                      color: const Color(0xFF611A04),
+                                      width: 1,
                                     ),
                                   ),
-                                ],
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    'Delete',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontFamily: 'Roboto',
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: relWidth(16),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ],
                           ),

@@ -79,22 +79,6 @@ class AdminHeader extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Notification button
-                GestureDetector(
-                  onTap: onNotificationTap ?? () {},
-                  child: Container(
-                    width: relWidth(30),
-                    height: relWidth(30),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(relWidth(15)),
-                    ),
-                    child: Image.asset(
-                      'assets/images/notification.png',
-                      width: relWidth(24),
-                      height: relWidth(24),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
@@ -218,7 +202,7 @@ class AdminFooter extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Image.asset(
-                  'assets/images/user.png',
+                  'assets/images/logout.png',
                   width: relWidth(60),
                   height: relWidth(60),
                   fit: BoxFit.contain,

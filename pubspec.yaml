@@ -39,6 +39,7 @@ flutter:
     - assets/images/Trash.png
     - assets/images/arrow-up.png
     - assets/images/arrow-down.png
+    - assets/images/logout.png
   fonts:
     - family: SofiaSansCondensed
       fonts:

@@ -42,10 +42,7 @@ class _AdminAnnouncementsState extends State<AdminAnnouncements> {
               child: AdminHeader(
                 relWidth: relWidth,
                 relHeight: relHeight,
-                selectedBarangay: widget.selectedBarangay,
-                onNotificationTap: () {
-                  print('Notification tapped');
-                },
+                selectedBarangay: widget.selectedBarangay
               ),
             ),
           ),
@@ -227,7 +224,6 @@ class _AdminAnnouncementsState extends State<AdminAnnouncements> {
                       ),
                     ],
                   ),
-                  SizedBox(height: relHeight(9)),
                   Expanded(
                     child: StreamBuilder<QuerySnapshot>(
                       stream: FirebaseFirestore.instance
@@ -285,16 +281,17 @@ class _AdminAnnouncementsState extends State<AdminAnnouncements> {
                         }
                         final docs = snapshot.data!.docs;
                         return ListView.builder(
+                          padding: EdgeInsets.only(top: relHeight(20),right: relWidth(20)),
                           itemCount: docs.length,
                           itemBuilder: (context, index) {
                             final data = docs[index].data() as Map<String, dynamic>;
-                            return Align(
-                              alignment: Alignment.center,
+                            return Center(
                               child: PostedAnnouncement(
                                 announcementId: docs[index].id,
                                 text: data['text'] ?? '',
                                 username: data['username'] ?? 'Unknown',
                                 selectedBarangay: widget.selectedBarangay,
+                                timestamp: data['timestamp'],
                               ),
                             );
                           },
