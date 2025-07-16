@@ -43,6 +43,12 @@ flutter:
     - assets/images/arrow-up.png
     - assets/images/arrow-down.png
     - assets/images/logout.png
+    - assets/images/category1.png
+    - assets/images/category2.png
+    - assets/images/category3.png
+    - assets/images/category4.png
+    - assets/images/category5.png
+    - assets/images/category6.png
   fonts:
     - family: SofiaSansCondensed
       fonts:

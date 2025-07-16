@@ -68,7 +68,66 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          // ...rest of your home page content...
+          // Home Screen Content
+          Padding(
+            padding: EdgeInsets.only(
+              top: relHeight(32),
+              left: relWidth(23),
+              right: relWidth(23),
+            ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Browse Categories',
+                style: TextStyle(
+                  fontFamily: 'RobotoCondensed',
+                  fontSize: relWidth(16),
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF611A04),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+              left: relWidth(23),
+              right: relWidth(23),
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              child: GridView.count(
+                crossAxisCount: 3,
+                shrinkWrap: true,
+                mainAxisSpacing: relHeight(20),
+                crossAxisSpacing: relWidth(3),
+                physics: NeverScrollableScrollPhysics(),
+                children: [
+                  for (var i = 0; i < 6; i++)
+                    GestureDetector(
+                      onTap: () {
+                        // TODO: Handle button tap for category i
+                        print('Category button $i tapped');
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(relWidth(12)),
+                          color: Colors.white,
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.all(relWidth(8)),
+                          child: Image.asset(
+                            'assets/images/category${i + 1}.png', // Use your actual image names
+                            fit: BoxFit.contain,
+                            width: relWidth(106),
+                            height: relWidth(106),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: HomeFooter(
