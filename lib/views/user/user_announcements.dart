@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'home_header_footer.dart';
+import 'user_posted_announcement.dart';
 
 class UserAnnouncements extends StatefulWidget {
   const UserAnnouncements({super.key});
@@ -52,6 +53,7 @@ class _UserAnnouncementsState extends State<UserAnnouncements> {
       backgroundColor: Colors.white,
       body: Column(
         children: [
+          // Header
           SafeArea(
             bottom: false,
             child: Container(
@@ -61,27 +63,129 @@ class _UserAnnouncementsState extends State<UserAnnouncements> {
                 relWidth: relWidth,
                 relHeight: relHeight,
                 selectedBarangay: selectedBarangay,
-                onNotificationTap: () {
-                  print('Notification tapped');
-                },
+                onNotificationTap: () {},
               ),
             ),
           ),
-          // ...rest of your home page content...
+          // Announcements header
+          Padding(
+            padding: EdgeInsets.only(
+              top: relHeight(34),
+              left: relWidth(24),
+              right: relWidth(24),
+              bottom: relHeight(10),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  'Announcements',
+                  style: TextStyle(
+                    fontFamily: 'Roboto',
+                    fontSize: relWidth(16),
+                    fontStyle: FontStyle.normal,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF611A04),
+                    letterSpacing: 0.32,
+                    height: 1.17182,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+          // Announcements list
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: selectedBarangay.isEmpty
+                  ? null
+                  : FirebaseFirestore.instance
+                      .collection('announcements')
+                      .where('barangay', isEqualTo: selectedBarangay)
+                      .orderBy('timestamp', descending: true)
+                      .snapshots(),
+              builder: (context, snapshot) {
+                if (selectedBarangay.isEmpty) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return Align(
+                    alignment: Alignment.topCenter,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        SizedBox(height: relHeight(10)),
+                        Container(
+                          width: relWidth(321),
+                          padding: EdgeInsets.fromLTRB(
+                            relWidth(10.125),
+                            relHeight(40.125),
+                            relWidth(40.125),
+                            relHeight(8.75),
+                          ),
+                          child: AspectRatio(
+                            aspectRatio: 1 / 1,
+                            child: Image.asset(
+                              'assets/images/noannounce.png',
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: relHeight(10)),
+                        Container(
+                          width: relWidth(249),
+                          height: relHeight(26),
+                          alignment: Alignment.center,
+                          child: Text(
+                            'No Announcements Yet.',
+                            style: TextStyle(
+                              fontFamily: 'Roboto',
+                              fontSize: relWidth(16),
+                              fontWeight: FontWeight.w500,
+                              color: const Color(0x88888888),
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                final docs = snapshot.data!.docs;
+                return ListView.builder(
+                  padding: EdgeInsets.only(top: relHeight(10), right: relWidth(20)),
+                  itemCount: docs.length,
+                  itemBuilder: (context, index) {
+                    final data = docs[index].data() as Map<String, dynamic>;
+                    return Center(
+                      child: UserPostedAnnouncement(
+                        text: data['text'] ?? '',
+                        username: data['username'] ?? 'Unknown',
+                        timestamp: data['timestamp'],
+                        relWidth: relWidth,
+                        relHeight: relHeight,
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: HomeFooter(
         relWidth: relWidth,
         relHeight: relHeight,
         onStoreTap: () {
-          print('Store button tapped');
+          Navigator.of(context).pushReplacementNamed('/home');
         },
         onAnnouncementTap: () {
-          print('Announcement button tapped');
-
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (context) => UserAnnouncements(),
+              builder: (context) => const UserAnnouncements(),
             ),
           );
         },
@@ -89,3 +193,5 @@ class _UserAnnouncementsState extends State<UserAnnouncements> {
     );
   }
 }
+
+

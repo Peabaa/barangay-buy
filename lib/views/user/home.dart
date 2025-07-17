@@ -134,14 +134,14 @@ class _HomePageState extends State<HomePage> {
         relWidth: relWidth,
         relHeight: relHeight,
         onStoreTap: () {
-          print('Store button tapped');
+           Navigator.of(context).pushReplacement(
+             MaterialPageRoute(builder: (context) => const HomePage()),
+          );
         },
         onAnnouncementTap: () {
-          print('Announcement button tapped');
-
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (context) => UserAnnouncements(),
+              builder: (context) => const UserAnnouncements(),
             ),
           );
         },

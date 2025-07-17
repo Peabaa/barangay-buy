@@ -43,7 +43,7 @@ class _AdminAnnouncementsState extends State<AdminAnnouncements> {
               child: AdminHeader(
                 relWidth: relWidth,
                 relHeight: relHeight,
-                selectedBarangay: widget.selectedBarangay
+                selectedBarangay: widget.selectedBarangay,
               ),
             ),
           ),
@@ -81,136 +81,126 @@ class _AdminAnnouncementsState extends State<AdminAnnouncements> {
                             final dialogController = TextEditingController();
                             showDialog(
                               context: context,
-                              builder: (context) => Dialog(
-                                backgroundColor: Colors.transparent,
-                                insetPadding: EdgeInsets.symmetric(horizontal: 24),
-                                child: Container(
-                                  width: relWidth(312),
-                                  height: relHeight(257),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFF3F2F2),
-                                    borderRadius: BorderRadius.circular(3),
-                                    border: Border.all(
-                                      color: const Color.fromRGBO(0, 0, 0, 0.22),
-                                      width: 1,
+                              barrierDismissible: true,
+                              builder: (context) => Center(
+                                child: SingleChildScrollView(
+                                  child: AlertDialog(
+                                    backgroundColor: const Color(0xFFF3F2F2),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(3),
+                                      side: const BorderSide(
+                                        color: Color.fromRGBO(0, 0, 0, 0.22),
+                                        width: 1,
+                                      ),
                                     ),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: [
-                                      SizedBox(height: relHeight(15)),
-                                      Container(
-                                        width: relWidth(215),
-                                        height: relHeight(17),
-                                        alignment: Alignment.center,
-                                        child: Text(
-                                          'Create Announcement',
-                                          style: TextStyle(
-                                            color: const Color(0xFF611A04),
-                                            fontFamily: 'Roboto',
-                                            fontSize: relWidth(16),
-                                            fontStyle: FontStyle.normal,
-                                            fontWeight: FontWeight.w700,
-                                            letterSpacing: 0.32,
-                                            height: 1.17182,
-                                          ),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
-                                      SizedBox(height: relHeight(9)),
-                                      Container(
-                                        width: relWidth(312),
-                                        height: 0,
-                                        decoration: BoxDecoration(
-                                          border: Border(
-                                            top: BorderSide(
-                                              color: const Color.fromRGBO(0, 0, 0, 0.22),
-                                              width: 1,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(height: relHeight(15)),
-                                      Container(
-                                        width: relWidth(275),
-                                        height: relHeight(145),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.8),
-                                          borderRadius: BorderRadius.circular(3),
-                                          border: Border.all(
-                                            color: const Color(0xFF611A04),
-                                            width: 1,
-                                          ),
-                                        ),
-                                        child: Padding(
-                                          padding: EdgeInsets.all(relWidth(12)),
-                                          child: TextField(
-                                            controller: dialogController,
-                                            maxLines: null,
-                                            expands: true,
-                                            decoration: const InputDecoration(
-                                              hintText: 'Post your announcement here...',
-                                              border: InputBorder.none,
-                                            ),
+                                    contentPadding: EdgeInsets.zero,
+                                    content: Container(
+                                      width: relWidth(312),
+                                      padding: EdgeInsets.symmetric(horizontal: relWidth(10)),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          SizedBox(height: relHeight(15)),
+                                          Text(
+                                            'Create Announcement',
                                             style: TextStyle(
-                                              fontFamily: 'Roboto',
-                                              fontSize: relWidth(14),
                                               color: const Color(0xFF611A04),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      SizedBox(height: relHeight(15)),
-                                      SizedBox(
-                                        width: relWidth(275),
-                                        height: relHeight(28),
-                                        child: ElevatedButton(
-                                          onPressed: () async {
-                                            final text = dialogController.text.trim();
-                                            if (text.isNotEmpty) {
-                                              final user = FirebaseAuth.instance.currentUser;
-                                              final userDoc = await FirebaseFirestore.instance
-                                                  .collection('users')
-                                                  .doc(user!.uid)
-                                                  .get();
-                                              final username = userDoc.data()?['username'] ?? user.email ?? 'Unknown';
-
-                                              await FirebaseFirestore.instance
-                                                .collection('users')
-                                                .doc(user!.uid)
-                                                .collection('announcements')
-                                                .add({
-                                                  'text': text,
-                                                  'barangay': widget.selectedBarangay,
-                                                  'timestamp': FieldValue.serverTimestamp(),
-                                                  'adminEmail': user.email,
-                                                  'username': username,
-                                                });
-
-                                              Navigator.of(context).pop();
-                                            }
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: const Color(0xFF611A04),
-                                            foregroundColor: Colors.white,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(3),
-                                            ),
-                                            padding: EdgeInsets.zero,
-                                            elevation: 0,
-                                          ),
-                                          child: Text(
-                                            'Post',
-                                            style: TextStyle(
                                               fontFamily: 'Roboto',
-                                              fontSize: relWidth(14),
-                                              fontWeight: FontWeight.w500,
+                                              fontSize: relWidth(16),
+                                              fontWeight: FontWeight.w700,
+                                              letterSpacing: 0.32,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          SizedBox(height: relHeight(9)),
+                                          Divider(
+                                            color: const Color.fromRGBO(0, 0, 0, 0.22),
+                                            thickness: 1,
+                                          ),
+                                          SizedBox(height: relHeight(15)),
+                                          Container(
+                                            width: relWidth(275),
+                                            height: relHeight(145),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white.withOpacity(0.8),
+                                              borderRadius: BorderRadius.circular(3),
+                                              border: Border.all(
+                                                color: const Color(0xFF611A04),
+                                                width: 1,
+                                              ),
+                                            ),
+                                            child: Padding(
+                                              padding: EdgeInsets.all(relWidth(12)),
+                                              child: TextField(
+                                                controller: dialogController,
+                                                maxLines: null,
+                                                expands: true,
+                                                decoration: const InputDecoration(
+                                                  hintText: 'Post your announcement here...',
+                                                  border: InputBorder.none,
+                                                ),
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: relWidth(14),
+                                                  color: const Color(0xFF611A04),
+                                                ),
+                                              ),
                                             ),
                                           ),
-                                        ),
+                                          SizedBox(height: relHeight(15)),
+                                          SizedBox(
+                                            width: relWidth(275),
+                                            height: relHeight(28),
+                                            child: ElevatedButton(
+                                              onPressed: () async {
+                                                final text = dialogController.text.trim();
+                                                if (text.isNotEmpty) {
+                                                  final user = FirebaseAuth.instance.currentUser;
+                                                  final userDoc = await FirebaseFirestore.instance
+                                                      .collection('users')
+                                                      .doc(user!.uid)
+                                                      .get();
+                                                  final username = userDoc.data()?['username'] ?? user.email ?? 'Unknown';
+
+                                                  await FirebaseFirestore.instance
+                                                      .collection('users')
+                                                      .doc(user!.uid)
+                                                      .collection('announcements')
+                                                      .add({
+                                                    'text': text,
+                                                    'barangay': widget.selectedBarangay,
+                                                    'timestamp': FieldValue.serverTimestamp(),
+                                                    'adminEmail': user.email,
+                                                    'username': username,
+                                                  });
+
+                                                  Navigator.of(context).pop();
+                                                }
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: const Color(0xFF611A04),
+                                                foregroundColor: Colors.white,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(3),
+                                                ),
+                                                padding: EdgeInsets.zero,
+                                                elevation: 0,
+                                              ),
+                                              child: Text(
+                                                'Post',
+                                                style: TextStyle(
+                                                  fontFamily: 'Roboto',
+                                                  fontSize: relWidth(14),
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(height: relHeight(10)),
+                                        ],
                                       ),
-                                      SizedBox(height: relHeight(10)),
-                                    ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -250,7 +240,7 @@ class _AdminAnnouncementsState extends State<AdminAnnouncements> {
                                     relWidth(10.125),
                                     relHeight(40.125),
                                     relWidth(40.125),
-                                    relHeight(26.75),
+                                    relHeight(.75),
                                   ),
                                   child: AspectRatio(
                                     aspectRatio: 1 / 1,
@@ -263,7 +253,7 @@ class _AdminAnnouncementsState extends State<AdminAnnouncements> {
                                 SizedBox(height: relHeight(10)),
                                 Container(
                                   width: relWidth(249),
-                                  height: relHeight(30),
+                                  height: relHeight(26),
                                   alignment: Alignment.center,
                                   child: Text(
                                     'No Announcements Yet.',
@@ -282,7 +272,7 @@ class _AdminAnnouncementsState extends State<AdminAnnouncements> {
                         }
                         final docs = snapshot.data!.docs;
                         return ListView.builder(
-                          padding: EdgeInsets.only(top: relHeight(20),right: relWidth(20)),
+                          padding: EdgeInsets.only(top: relHeight(20), right: relWidth(20)),
                           itemCount: docs.length,
                           itemBuilder: (context, index) {
                             final data = docs[index].data() as Map<String, dynamic>;

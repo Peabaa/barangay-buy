@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:barangay_buy/views/user/home.dart';
 
 class HomeHeader extends StatelessWidget {
   final double Function(double) relWidth;
@@ -170,7 +171,12 @@ class HomeFooter extends StatelessWidget {
             left: relWidth(11),
             top: relHeight(11),
             child: GestureDetector(
-              onTap: onStoreTap ?? () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => HomePage()),
+                );
+              },
               child: Container(
                 width: relWidth(75),
                 height: relHeight(75),
