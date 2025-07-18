@@ -5,6 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'home_header_footer.dart';
 import 'user_announcements.dart';
+import 'user_sell.dart';
+import 'user_profile.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -71,7 +73,7 @@ class _HomePageState extends State<HomePage> {
           // Home Screen Content
           Padding(
             padding: EdgeInsets.only(
-              top: relHeight(32),
+              top: relHeight(22),
               left: relWidth(23),
               right: relWidth(23),
             ),
@@ -88,11 +90,13 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
+          // Categories
           Padding(
             padding: EdgeInsets.only(
               left: relWidth(23),
               right: relWidth(23),
             ),
+            
             child: SizedBox(
               width: double.infinity,
               child: GridView.count(
@@ -128,6 +132,53 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
+          Padding(
+            padding: EdgeInsets.only(
+              top: relHeight(22),
+              left: relWidth(23),
+              right: relWidth(23),
+            ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Popular Items',
+                style: TextStyle(
+                  fontFamily: 'RobotoCondensed',
+                  fontSize: relWidth(16),
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF611A04),
+                ),
+              ),
+            ),
+          ),
+          // After your categories grid, add this:
+Padding(
+  padding: EdgeInsets.only(
+    top: relHeight(20),
+    left: relWidth(23),
+    right: relWidth(23),
+  ),
+  child: Column(
+    children: [
+      SizedBox(height: relHeight(10)),
+      Container(
+        width: relWidth(249),
+        height: relHeight(30),
+        alignment: Alignment.center,
+        child: Text(
+          '--- No Items Yet. ---',
+          style: TextStyle(
+            fontFamily: 'RobotoCondensed',
+            fontSize: relWidth(20),
+            fontWeight: FontWeight.w500,
+            color: const Color(0x88888888),
+          ),                                                           
+          textAlign: TextAlign.center,
+        ),
+      ),
+    ],
+  ),
+),
         ],
       ),
       bottomNavigationBar: HomeFooter(
@@ -145,6 +196,21 @@ class _HomePageState extends State<HomePage> {
             ),
           );
         },
+        onSellTap: () {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const UserSell(),
+            ),
+          );
+        },
+        onProfileTap: () {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const UserProfile(),
+            ),
+          );
+        },
+        activeTab: 'store',
       ),
     );
   }

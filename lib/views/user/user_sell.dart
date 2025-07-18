@@ -4,18 +4,19 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'home.dart';
+import 'user_announcements.dart';
 import 'user_posted_announcement.dart';
-import 'user_sell.dart';
 import 'user_profile.dart';
 import 'home_header_footer.dart';
-class UserAnnouncements extends StatefulWidget {
-  const UserAnnouncements({super.key});
+
+class UserSell extends StatefulWidget {
+  const UserSell({super.key});
 
   @override
-  State<UserAnnouncements> createState() => _UserAnnouncementsState();
+  State<UserSell> createState() => _UserSellState();
 }
 
-class _UserAnnouncementsState extends State<UserAnnouncements> {
+class _UserSellState extends State<UserSell> {
   String selectedBarangay = '';
 
   @override
@@ -81,7 +82,7 @@ class _UserAnnouncementsState extends State<UserAnnouncements> {
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Text(
-                  'Announcements',
+                  'Sell Page / Item Postings',
                   style: TextStyle(
                     fontFamily: 'Roboto',
                     fontSize: relWidth(16),
@@ -209,7 +210,7 @@ class _UserAnnouncementsState extends State<UserAnnouncements> {
             ),
           );
         },
-        activeTab: 'announcements',
+        activeTab: 'sell',
       ),
     );
   }

@@ -32,9 +32,12 @@ flutter:
     - assets/images/notification.png
     - assets/images/location.png
     - assets/images/store.png
+    - assets/images/store_unselected.png
     - assets/images/megaphone.png
     - assets/images/megaphone_unselected.png
+    - assets/images/sell.png
     - assets/images/sell_unselected.png
+    - assets/images/user.png
     - assets/images/user_unselected.png
     - assets/images/addanounce.png
     - assets/images/noannounce.png

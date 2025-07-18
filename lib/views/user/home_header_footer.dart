@@ -149,6 +149,9 @@ class HomeFooter extends StatelessWidget {
   final double Function(double) relHeight;
   final VoidCallback? onStoreTap;
   final VoidCallback? onAnnouncementTap;
+  final VoidCallback? onSellTap;
+  final VoidCallback? onProfileTap;
+  final String activeTab;
 
   const HomeFooter({
     super.key,
@@ -156,6 +159,9 @@ class HomeFooter extends StatelessWidget {
     required this.relHeight,
     this.onStoreTap,
     this.onAnnouncementTap,
+    this.onSellTap,
+    this.onProfileTap,
+    required this.activeTab,
   });
 
   @override
@@ -171,29 +177,19 @@ class HomeFooter extends StatelessWidget {
             left: relWidth(11),
             top: relHeight(11),
             child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => HomePage()),
-                );
-              },
+              onTap: onStoreTap ?? () {},
               child: Container(
                 width: relWidth(75),
                 height: relHeight(75),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: activeTab == 'store' ? Colors.white : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 2,
-                      offset: Offset(0, 2),
-                    ),
-                  ],
                 ),
                 child: Center(
                   child: Image.asset(
-                    'assets/images/store.png',
+                    activeTab == 'store'
+                      ? 'assets/images/store.png'
+                      : 'assets/images/store_unselected.png',  
                     width: relWidth(60),
                     height: relWidth(60),
                   ),
@@ -221,13 +217,18 @@ class HomeFooter extends StatelessWidget {
                 width: relWidth(60),
                 height: relWidth(60),
                 decoration: BoxDecoration(
+                  color: activeTab == 'announcements' ? Colors.white : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Image.asset(
-                  'assets/images/megaphone_unselected.png',
-                  width: relWidth(60),
-                  height: relWidth(60),
-                  fit: BoxFit.contain,
+                child: Center(
+                  child: Image.asset(
+                    activeTab == 'announcements'
+                      ? 'assets/images/megaphone.png' 
+                      : 'assets/images/megaphone_unselected.png',
+                    width: relWidth(60),
+                    height: relWidth(60),
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
             ),
@@ -247,18 +248,23 @@ class HomeFooter extends StatelessWidget {
             left: relWidth(239),
             top: relHeight(19),
             child: GestureDetector(
-              onTap: onAnnouncementTap ?? () {},
+              onTap: onSellTap ?? () {},
               child: Container(
                 width: relWidth(60),
                 height: relWidth(60),
                 decoration: BoxDecoration(
+                  color: activeTab == 'sell' ? Colors.white : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Image.asset(
-                  'assets/images/sell_unselected.png',
-                  width: relWidth(60),
-                  height: relWidth(60),
-                  fit: BoxFit.contain,
+                child: Center(
+                  child: Image.asset(
+                    activeTab == 'sell'
+                    ? 'assets/images/sell.png'
+                    : 'assets/images/sell_unselected.png',
+                    width: relWidth(60),
+                    height: relWidth(60),
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
             ),
@@ -278,18 +284,23 @@ class HomeFooter extends StatelessWidget {
             left: relWidth(336),
             top: relHeight(19),
             child: GestureDetector(
-              onTap: onAnnouncementTap ?? () {},
+              onTap: onProfileTap ?? () {},
               child: Container(
                 width: relWidth(60),
                 height: relWidth(60),
                 decoration: BoxDecoration(
+                  color: activeTab == 'profile' ? Colors.white : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Image.asset(
-                  'assets/images/user_unselected.png',
-                  width: relWidth(60),
-                  height: relWidth(60),
-                  fit: BoxFit.contain,
+                child: Center(
+                  child: Image.asset(
+                    activeTab == 'profile'
+                      ? 'assets/images/user.png'
+                      : 'assets/images/user_unselected.png',
+                    width: relWidth(60),
+                    height: relWidth(60),
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
             ),
