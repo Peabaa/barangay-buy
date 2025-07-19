@@ -18,14 +18,17 @@ class UserProfile extends StatefulWidget {
 
 class _UserProfileState extends State<UserProfile> {
   String selectedBarangay = '';
+  String username = '';
+  String email = '';
+  String password = '';
 
   @override
   void initState() {
     super.initState();
-    _fetchBarangay();
+    _fetchUserData();
   }
 
-  Future<void> _fetchBarangay() async {
+  Future<void> _fetchUserData() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final userDoc = await FirebaseFirestore.instance
@@ -34,6 +37,9 @@ class _UserProfileState extends State<UserProfile> {
           .get();
       setState(() {
         selectedBarangay = userDoc.data()?['barangay'] ?? '';
+        username = userDoc.data()?['username'] ?? '';
+        email = userDoc.data()?['email'] ?? '';
+        password = userDoc.data()?['password'] ?? '';
       });
     }
   }
@@ -54,130 +60,266 @@ class _UserProfileState extends State<UserProfile> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Column(
-        children: [
-          // Header
-          SafeArea(
-            bottom: false,
-            child: Container(
-              width: double.infinity,
-              color: const Color(0xFFFF5B29),
-              child: HomeHeader(
-                relWidth: relWidth,
-                relHeight: relHeight,
-                selectedBarangay: selectedBarangay,
-                onNotificationTap: () {},
+      body: SingleChildScrollView( // <-- Make scrollable for small screens
+        child: Column(
+          children: [
+            // Header
+            SafeArea(
+              bottom: false,
+              child: Container(
+                width: double.infinity,
+                color: const Color(0xFFFF5B29),
+                child: HomeHeader(
+                  relWidth: relWidth,
+                  relHeight: relHeight,
+                  selectedBarangay: selectedBarangay,
+                  onNotificationTap: () {},
+                ),
               ),
             ),
-          ),
-          // Announcements header
-          Padding(
-            padding: EdgeInsets.only(
-              top: relHeight(34),
-              left: relWidth(24),
-              right: relWidth(24),
-              bottom: relHeight(10),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(
-                  'User Profile Page',
-                  style: TextStyle(
-                    fontFamily: 'Roboto',
-                    fontSize: relWidth(16),
-                    fontStyle: FontStyle.normal,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF611A04),
-                    letterSpacing: 0.32,
-                    height: 1.17182,
+            // Centered user.png
+            Padding(
+              padding: EdgeInsets.only(top: relHeight(10)),
+              child: Center(
+                child: Container(
+                  width: relWidth(231),
+                  height: relWidth(231),
+                  alignment: Alignment.center,
+                  child: Image.asset(
+                    'assets/images/UserProfilePage.png',
+                    width: relWidth(231),
+                    height: relWidth(231),
+                    fit: BoxFit.contain,
                   ),
-                  textAlign: TextAlign.center,
                 ),
-              ],
+              ),
             ),
-          ),
-          // Announcements list
-          Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: selectedBarangay.isEmpty
-                  ? null
-                  : FirebaseFirestore.instance
-                      .collection('announcements')
-                      .where('barangay', isEqualTo: selectedBarangay)
-                      .orderBy('timestamp', descending: true)
-                      .snapshots(),
-              builder: (context, snapshot) {
-                if (selectedBarangay.isEmpty) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Align(
-                    alignment: Alignment.topCenter,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        SizedBox(height: relHeight(10)),
-                        Container(
-                          width: relWidth(321),
-                          padding: EdgeInsets.fromLTRB(
-                            relWidth(10.125),
-                            relHeight(40.125),
-                            relWidth(40.125),
-                            relHeight(8.75),
-                          ),
-                          child: AspectRatio(
-                            aspectRatio: 1 / 1,
-                            child: Image.asset(
-                              'assets/images/noannounce.png',
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: relHeight(10)),
-                        Container(
-                          width: relWidth(249),
-                          height: relHeight(26),
-                          alignment: Alignment.center,
-                          child: Text(
-                            'No Announcements Yet.',
-                            style: TextStyle(
-                              fontFamily: 'Roboto',
-                              fontSize: relWidth(16),
-                              fontWeight: FontWeight.w500,
-                              color: const Color(0x88888888),
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ],
+            SizedBox(height: relHeight(9)),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: relWidth(24)),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Username',
+                    style: TextStyle(
+                      color: const Color(0xFF611A04),
+                      fontFamily: 'Roboto',
+                      fontSize: relWidth(24),
+                      fontStyle: FontStyle.normal,
+                      fontWeight: FontWeight.w500,
+                      height: 1.17182,
+                      letterSpacing: 0.48,
                     ),
-                  );
-                }
-                final docs = snapshot.data!.docs;
-                return ListView.builder(
-                  padding: EdgeInsets.only(top: relHeight(10), right: relWidth(20)),
-                  itemCount: docs.length,
-                  itemBuilder: (context, index) {
-                    final data = docs[index].data() as Map<String, dynamic>;
-                    return Center(
-                      child: UserPostedAnnouncement(
-                        text: data['text'] ?? '',
-                        username: data['username'] ?? 'Unknown',
-                        timestamp: data['timestamp'],
-                        relWidth: relWidth,
-                        relHeight: relHeight,
+                  ),
+                  SizedBox(height: relHeight(7)),
+                  Container(
+                    width: relWidth(299),
+                    height: relHeight(17),
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      username.isNotEmpty ? username : '',
+                      style: TextStyle(
+                        color: const Color(0xFF611A04),
+                        fontFamily: 'Roboto',
+                        fontSize: relWidth(16),
+                        fontStyle: FontStyle.normal,
+                        fontWeight: FontWeight.w400,
+                        height: 1.17176,
+                        letterSpacing: 0.32,
                       ),
-                    );
-                  },
-                );
-              },
+                    ),
+                  ),
+                  SizedBox(height: relHeight(3)),
+                  Container(
+                    width: relWidth(363),
+                    height: 0,
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: const Color.fromRGBO(97, 26, 4, 0.24),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: relHeight(16)),
+                  Text(
+                    'Email Address',
+                    style: TextStyle(
+                      color: const Color(0xFF611A04),
+                      fontFamily: 'Roboto',
+                      fontSize: relWidth(24),
+                      fontStyle: FontStyle.normal,
+                      fontWeight: FontWeight.w500,
+                      height: 1.17182,
+                      letterSpacing: 0.48,
+                    ),
+                  ),
+                  SizedBox(height: relHeight(7)),
+                  Container(
+                    width: relWidth(299),
+                    height: relHeight(20),
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      email.isNotEmpty ? email : '',
+                      style: TextStyle(
+                        color: const Color(0xFF611A04),
+                        fontFamily: 'Roboto',
+                        fontSize: relWidth(16),
+                        fontStyle: FontStyle.normal,
+                        fontWeight: FontWeight.w400,
+                        height: 1.17176,
+                        letterSpacing: 0.32,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: relHeight(3)),
+                  Container(
+                    width: relWidth(363),
+                    height: 0,
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: const Color.fromRGBO(97, 26, 4, 0.24),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: relHeight(16)),
+                  Text(
+                    'Password',
+                    style: TextStyle(
+                      color: const Color(0xFF611A04),
+                      fontFamily: 'Roboto',
+                      fontSize: relWidth(24),
+                      fontStyle: FontStyle.normal,
+                      fontWeight: FontWeight.w500,
+                      height: 1.17182,
+                      letterSpacing: 0.48,
+                    ),
+                  ),
+                  SizedBox(height: relHeight(7)),
+                  Container(
+                    width: relWidth(299),
+                    height: relHeight(17),
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      password.isNotEmpty ? '*' * password.length : '',
+                      style: TextStyle(
+                        color: const Color(0xFF611A04),
+                        fontFamily: 'Roboto',
+                        fontSize: relWidth(16),
+                        fontStyle: FontStyle.normal,
+                        fontWeight: FontWeight.w400,
+                        height: 1.17176,
+                        letterSpacing: 0.32,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: relHeight(3)),
+                  Container(
+                    width: relWidth(363),
+                    height: 0,
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: const Color.fromRGBO(97, 26, 4, 0.24),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: relHeight(16)),
+                  Text(
+                    'Barangay',
+                    style: TextStyle(
+                      color: const Color(0xFF611A04),
+                      fontFamily: 'Roboto',
+                      fontSize: relWidth(24),
+                      fontStyle: FontStyle.normal,
+                      fontWeight: FontWeight.w500,
+                      height: 1.17182,
+                      letterSpacing: 0.48,
+                    ),
+                  ),
+                  SizedBox(height: relHeight(7)),
+                  Row(
+                    children: [
+                      Container(
+                        width: relWidth(299),
+                        height: relHeight(17),
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          selectedBarangay.isNotEmpty ? selectedBarangay : '',
+                          style: TextStyle(
+                            color: const Color(0xFF611A04),
+                            fontFamily: 'Roboto',
+                            fontSize: relWidth(16),
+                            fontStyle: FontStyle.normal,
+                            fontWeight: FontWeight.w400,
+                            height: 1.17176,
+                            letterSpacing: 0.32,
+                          ),
+                        ),
+                      ),
+                      Spacer(),
+                      GestureDetector(
+                        onTap: () {
+                          // TODO: Add your barangay change logic here
+                        },
+                        child: Image.asset(
+                          'assets/images/arrow-left.png',
+                          width: relWidth(24),
+                          height: relWidth(24),
+                          color: const Color(0xFF7B3F27),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: relHeight(3)),
+                  Container(
+                    width: relWidth(363),
+                    height: 0,
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: const Color.fromRGBO(97, 26, 4, 0.24),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: relHeight(16)),
+                  Center(
+                    child: Container(
+                      width: relWidth(183),
+                      height: relHeight(38),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF7B3F27), // Use the brown color from your sample
+                        borderRadius: BorderRadius.circular(6), // Slightly more rounded corners
+                      ),
+                      child: Center(
+                        child: Text(
+                          'Save Changes',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontFamily: 'Roboto',
+                            fontSize: relWidth(24),
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.48,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       bottomNavigationBar: HomeFooter(
         relWidth: relWidth,
@@ -187,7 +329,7 @@ class _UserProfileState extends State<UserProfile> {
             MaterialPageRoute(
               builder: (context) => const HomePage(),
             ),
-          );  
+          );
         },
         onAnnouncementTap: () {
           Navigator.of(context).pushReplacement(
