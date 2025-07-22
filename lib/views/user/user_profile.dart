@@ -8,6 +8,7 @@ import 'user_announcements.dart';
 import 'user_posted_announcement.dart';
 import 'user_sell.dart';
 import 'home_header_footer.dart';
+import '../login_signup.dart';
 
 class UserProfile extends StatefulWidget {
   const UserProfile({super.key});
@@ -20,7 +21,18 @@ class _UserProfileState extends State<UserProfile> {
   String selectedBarangay = '';
   String username = '';
   String email = '';
-  String password = '';
+  final List<String> barangayList = [
+    'Banilad',
+    'Bulacao',
+    'Day-as',
+    'Ermita',
+    'Guadalupe',
+    'Inayawan',
+    'Labangon',
+    'Lahug',
+    'Pari-an',
+    'Pasil'
+  ];
 
   @override
   void initState() {
@@ -39,8 +51,22 @@ class _UserProfileState extends State<UserProfile> {
         selectedBarangay = userDoc.data()?['barangay'] ?? '';
         username = userDoc.data()?['username'] ?? '';
         email = userDoc.data()?['email'] ?? '';
-        password = userDoc.data()?['password'] ?? '';
       });
+    }
+  }
+
+  Future<void> _saveChanges() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .update({
+        'barangay': selectedBarangay,
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Changes saved!')),
+      );
     }
   }
 
@@ -60,7 +86,7 @@ class _UserProfileState extends State<UserProfile> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView( // <-- Make scrollable for small screens
+      body: SingleChildScrollView(
         child: Column(
           children: [
             // Header
@@ -100,6 +126,7 @@ class _UserProfileState extends State<UserProfile> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Username
                   Text(
                     'Username',
                     style: TextStyle(
@@ -144,6 +171,7 @@ class _UserProfileState extends State<UserProfile> {
                     ),
                   ),
                   SizedBox(height: relHeight(16)),
+                  // Email Address
                   Text(
                     'Email Address',
                     style: TextStyle(
@@ -188,50 +216,7 @@ class _UserProfileState extends State<UserProfile> {
                     ),
                   ),
                   SizedBox(height: relHeight(16)),
-                  Text(
-                    'Password',
-                    style: TextStyle(
-                      color: const Color(0xFF611A04),
-                      fontFamily: 'Roboto',
-                      fontSize: relWidth(24),
-                      fontStyle: FontStyle.normal,
-                      fontWeight: FontWeight.w500,
-                      height: 1.17182,
-                      letterSpacing: 0.48,
-                    ),
-                  ),
-                  SizedBox(height: relHeight(7)),
-                  Container(
-                    width: relWidth(299),
-                    height: relHeight(17),
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      password.isNotEmpty ? '*' * password.length : '',
-                      style: TextStyle(
-                        color: const Color(0xFF611A04),
-                        fontFamily: 'Roboto',
-                        fontSize: relWidth(16),
-                        fontStyle: FontStyle.normal,
-                        fontWeight: FontWeight.w400,
-                        height: 1.17176,
-                        letterSpacing: 0.32,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: relHeight(3)),
-                  Container(
-                    width: relWidth(363),
-                    height: 0,
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: const Color.fromRGBO(97, 26, 4, 0.24),
-                          width: 1,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: relHeight(16)),
+                  // Barangay
                   Text(
                     'Barangay',
                     style: TextStyle(
@@ -245,38 +230,57 @@ class _UserProfileState extends State<UserProfile> {
                     ),
                   ),
                   SizedBox(height: relHeight(7)),
-                  Row(
-                    children: [
-                      Container(
-                        width: relWidth(299),
-                        height: relHeight(17),
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          selectedBarangay.isNotEmpty ? selectedBarangay : '',
+                  Container(
+                    width: relWidth(370),
+                    height: relHeight(20),
+                    alignment: Alignment.centerLeft,
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        value: selectedBarangay.isNotEmpty ? selectedBarangay : null,
+                        hint: Text(
+                          'Select Barangay',
                           style: TextStyle(
                             color: const Color(0xFF611A04),
                             fontFamily: 'Roboto',
                             fontSize: relWidth(16),
-                            fontStyle: FontStyle.normal,
                             fontWeight: FontWeight.w400,
-                            height: 1.17176,
-                            letterSpacing: 0.32,
                           ),
                         ),
-                      ),
-                      Spacer(),
-                      GestureDetector(
-                        onTap: () {
-                          // TODO: Add your barangay change logic here
-                        },
-                        child: Image.asset(
+                        icon: Image.asset(
                           'assets/images/arrow-left.png',
                           width: relWidth(24),
                           height: relWidth(24),
                           color: const Color(0xFF7B3F27),
                         ),
+                        dropdownColor: Colors.white,
+                        style: TextStyle(
+                          color: const Color(0xFF611A04),
+                          fontFamily: 'Roboto',
+                          fontSize: relWidth(16),
+                          fontWeight: FontWeight.w400,
+                        ),
+                        items: barangayList.map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(
+                              value,
+                              style: TextStyle(
+                                color: const Color(0xFF611A04),
+                                fontFamily: 'Roboto',
+                                fontSize: relWidth(16),
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            selectedBarangay = newValue ?? '';
+                          });
+                        },
                       ),
-                    ],
+                    ),
                   ),
                   SizedBox(height: relHeight(3)),
                   Container(
@@ -292,29 +296,279 @@ class _UserProfileState extends State<UserProfile> {
                     ),
                   ),
                   SizedBox(height: relHeight(16)),
+                  // Save Changes Button
                   Center(
-                    child: Container(
-                      width: relWidth(183),
-                      height: relHeight(38),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF7B3F27), // Use the brown color from your sample
-                        borderRadius: BorderRadius.circular(6), // Slightly more rounded corners
-                      ),
-                      child: Center(
-                        child: Text(
-                          'Save Changes',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontFamily: 'Roboto',
-                            fontSize: relWidth(24),
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.48,
+                    child: GestureDetector(
+                      onTap: _saveChanges,
+                      child: Container(
+                        width: relWidth(183),
+                        height: relHeight(38),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF7B3F27),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Save Changes',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontFamily: 'Roboto',
+                              fontSize: relWidth(24),
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.48,
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
+                  SizedBox(height: relHeight(20)),
+                  Container(
+                    width: relWidth(363),
+                    height: 0,
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: const Color(0xFF611A04),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: relHeight(18)),
+                  // My Listings
+                  Text(
+                    'My Listings',
+                    style: TextStyle(
+                      color: const Color(0xFF611A04),
+                      fontFamily: 'Roboto',
+                      fontSize: relWidth(24),
+                      fontStyle: FontStyle.normal,
+                      fontWeight: FontWeight.w500,
+                      height: 1.17182,
+                      letterSpacing: 0.48,
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                      top: relHeight(20),
+                      left: relWidth(23),
+                      right: relWidth(23),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '--- No Items Added. ---',
+                        style: TextStyle(
+                          fontFamily: 'RobotoCondensed',
+                          fontSize: relWidth(20),
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0x88888888),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: relHeight(15)),
+                  Container(
+                    width: relWidth(363),
+                    height: 0,
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: const Color(0xFF611A04),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: relHeight(18)),
+                  // My Favorite Listings
+                  Text(
+                    'Favorite Listings',
+                    style: TextStyle(
+                      color: const Color(0xFF611A04),
+                      fontFamily: 'Roboto',
+                      fontSize: relWidth(24),
+                      fontStyle: FontStyle.normal,
+                      fontWeight: FontWeight.w500,
+                      height: 1.17182,
+                      letterSpacing: 0.48,
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                      top: relHeight(20),
+                      left: relWidth(23),
+                      right: relWidth(23),
+                    ),
+                    child: Center(
+                      child: Text(
+                        '--- No Favorite Listings Yet. ---',
+                        style: TextStyle(
+                          fontFamily: 'RobotoCondensed',
+                          fontSize: relWidth(20),
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0x88888888),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: relHeight(15)),
+                  Container(
+                    width: relWidth(363),
+                    height: 0,
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: const Color(0xFF611A04),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: relHeight(16)),
+                  // Log Out Button
+                  Center(
+                    child: GestureDetector(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          barrierDismissible: true,
+                          builder: (context) => Center(
+                            child: Material(
+                              color: Colors.transparent,
+                              child: Container(
+                                width: relWidth(312),
+                                height: relHeight(230),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF3F2F2),
+                                  borderRadius: BorderRadius.circular(relWidth(3)),
+                                  border: Border.all(
+                                    color: const Color.fromRGBO(0, 0, 0, 0.22),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      width: relWidth(215),
+                                      height: relHeight(25),
+                                      alignment: Alignment.center,
+                                      margin: EdgeInsets.symmetric(vertical: relHeight(7)),
+                                      child: Text(
+                                        'Log Out',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          color: const Color(0xFF611A04),
+                                          fontFamily: 'Roboto',
+                                          fontSize: relWidth(18),
+                                          fontWeight: FontWeight.w700,
+                                          fontStyle: FontStyle.normal,
+                                          height: 1.17182,
+                                          letterSpacing: 0.32,
+                                          decoration: TextDecoration.none,
+                                        ),
+                                      ),
+                                    ),
+                                    Divider(
+                                      color: const Color.fromRGBO(0, 0, 0, 0.22),
+                                      thickness: 1,
+                                      height: relHeight(16),
+                                    ),
+                                    Container(
+                                      width: relWidth(232),
+                                      height: relHeight(81),
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        'Do you want to log out?',
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          color: const Color(0xFF611A04),
+                                          fontFamily: 'Roboto',
+                                          fontSize: relWidth(20),
+                                          fontWeight: FontWeight.w700,
+                                          fontStyle: FontStyle.normal,
+                                          height: 1.17182,
+                                          letterSpacing: 0.4,
+                                          decoration: TextDecoration.none,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(height: relHeight(15)),
+                                    GestureDetector(
+                                      onTap: () async {
+                                        Navigator.of(context).pop();
+                                        try {
+                                          await FirebaseAuth.instance.signOut();
+                                        } catch (e) {}
+                                        if (context.mounted) {
+                                          Navigator.of(context).pushAndRemoveUntil(
+                                            MaterialPageRoute(
+                                              builder: (context) => LoginSignupScreen(),
+                                            ),
+                                            (route) => false,
+                                          );
+                                        }
+                                      },
+                                      child: Container(
+                                        width: relWidth(133),
+                                        height: relHeight(28),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF611A04).withOpacity(0.8),
+                                          borderRadius: BorderRadius.circular(relWidth(3)),
+                                          border: Border.all(
+                                            color: const Color(0xFF611A04),
+                                            width: 1,
+                                          ),
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          'Log Out',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontFamily: 'Roboto',
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: relWidth(16),
+                                            decoration: TextDecoration.none,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        width: relWidth(183),
+                        height: relHeight(38),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF7B3F27),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Center(
+                          child: Text(
+                            'Log Out',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontFamily: 'Roboto',
+                              fontSize: relWidth(24),
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.48,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: relHeight(20)),
                 ],
               ),
             ),
