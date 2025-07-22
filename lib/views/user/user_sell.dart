@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'dart:convert';
 
 import 'home.dart';
 import 'user_announcements.dart';
@@ -21,6 +22,14 @@ class _UserSellState extends State<UserSell> {
   String selectedBarangay = '';
   String? selectedCategory;
   File? _productImage;
+  
+  // Text controllers for form fields
+  final TextEditingController _productNameController = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  
+  // Loading state
+  bool _isSubmitting = false;
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
@@ -38,6 +47,24 @@ class _UserSellState extends State<UserSell> {
     _fetchBarangay();
   }
 
+  @override
+  void dispose() {
+    _productNameController.dispose();
+    _priceController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  Future<String?> _convertImageToBase64(File imageFile) async {
+    try {
+      final bytes = await imageFile.readAsBytes();
+      return base64Encode(bytes);
+    } catch (e) {
+      print('Error converting image to Base64: $e');
+      return null;
+    }
+  }
+
   Future<void> _fetchBarangay() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
@@ -49,6 +76,125 @@ class _UserSellState extends State<UserSell> {
         selectedBarangay = userDoc.data()?['barangay'] ?? '';
       });
     }
+  }
+
+  Future<void> _submitProduct() async {
+    // Validate form
+    if (_productNameController.text.trim().isEmpty) {
+      _showSnackBar('Please enter a product name');
+      return;
+    }
+    
+    if (_priceController.text.trim().isEmpty) {
+      _showSnackBar('Please enter a product price');
+      return;
+    }
+    
+    final price = double.tryParse(_priceController.text.trim());
+    if (price == null || price <= 0) {
+      _showSnackBar('Please enter a valid price');
+      return;
+    }
+    
+    if (selectedCategory == null) {
+      _showSnackBar('Please select a category');
+      return;
+    }
+    
+    if (_descriptionController.text.trim().isEmpty) {
+      _showSnackBar('Please enter a product description');
+      return;
+    }
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      _showSnackBar('User not logged in');
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      // Get user information
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      
+      final username = userDoc.data()?['username'] ?? user.email ?? 'Unknown';
+
+      // Convert image to Base64 if image exists
+      String? imageBase64;
+      if (_productImage != null) {
+        imageBase64 = await _convertImageToBase64(_productImage!);
+        if (imageBase64 == null) {
+          _showSnackBar('Error processing image. Please try again.');
+          setState(() {
+            _isSubmitting = false;
+          });
+          return;
+        }
+      }
+
+      // Create product data with Base64 image
+      final productData = {
+        'productName': _productNameController.text.trim(),
+        'price': price,
+        'category': selectedCategory!,
+        'description': _descriptionController.text.trim(),
+        'barangay': selectedBarangay,
+        'sellerName': username,
+        'sellerEmail': user.email,
+        'sellerId': user.uid,
+        'timestamp': FieldValue.serverTimestamp(),
+        'status': 'active', // active, sold, inactive
+        'hasImage': _productImage != null,
+        'imageBase64': imageBase64, // Store Base64 encoded image
+      };
+
+      // Add to user's products collection
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('products')
+          .add(productData);
+
+      // Also add to a global products collection for easier searching
+      await FirebaseFirestore.instance
+          .collection('products')
+          .add(productData);
+
+      _showSnackBar('Product listed successfully!');
+      _clearForm();
+      
+    } catch (e) {
+      _showSnackBar('Error listing product: ${e.toString()}');
+    } finally {
+      setState(() {
+        _isSubmitting = false;
+      });
+    }
+  }
+
+  void _clearForm() {
+    setState(() {
+      _productNameController.clear();
+      _priceController.clear();
+      _descriptionController.clear();
+      selectedCategory = null;
+      _productImage = null;
+    });
+  }
+
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: const Color(0xFF611A04),
+      ),
+    );
   }
 
   @override
@@ -183,6 +329,7 @@ class _UserSellState extends State<UserSell> {
                               alignment: Alignment.centerLeft,
                               padding: EdgeInsets.symmetric(horizontal: relWidth(10)),
                               child: TextField(
+                                controller: _productNameController,
                                 style: TextStyle(
                                   fontSize: relWidth(16),
                                   fontFamily: 'RobotoCondensed',
@@ -222,6 +369,7 @@ class _UserSellState extends State<UserSell> {
                               alignment: Alignment.centerLeft,
                               padding: EdgeInsets.symmetric(horizontal: relWidth(10)),
                               child: TextField(
+                                controller: _priceController,
                                 style: TextStyle(
                                   fontSize: relWidth(16),
                                   fontFamily: 'RobotoCondensed',
@@ -351,6 +499,7 @@ class _UserSellState extends State<UserSell> {
                               alignment: Alignment.topLeft,
                               padding: EdgeInsets.symmetric(horizontal: relWidth(10)),
                               child: TextField(
+                                controller: _descriptionController,
                                 maxLines: null,
                                 minLines: 4,
                                 decoration: InputDecoration(
@@ -380,13 +529,30 @@ class _UserSellState extends State<UserSell> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         GestureDetector(
-                          onTap: () {
-                            print('Submit button tapped');
-                          },
-                          child: Image.asset(
-                            'assets/images/tick_square.png',
-                            width: relWidth(34),
-                            height: relWidth(34),
+                          onTap: _isSubmitting ? null : _submitProduct,
+                          child: Opacity(
+                            opacity: _isSubmitting ? 0.5 : 1.0,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Image.asset(
+                                  'assets/images/tick_square.png',
+                                  width: relWidth(34),
+                                  height: relWidth(34),
+                                ),
+                                if (_isSubmitting)
+                                  SizedBox(
+                                    width: relWidth(20),
+                                    height: relWidth(20),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Color(0xFF611A04),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
                         ),
                       ],
