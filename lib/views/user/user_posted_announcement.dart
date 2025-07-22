@@ -8,6 +8,7 @@ class UserPostedAnnouncement extends StatelessWidget {
   final Timestamp? timestamp;
   final double Function(double) relWidth;
   final double Function(double) relHeight;
+  final bool isAdmin;
 
   const UserPostedAnnouncement({
     super.key,
@@ -16,6 +17,7 @@ class UserPostedAnnouncement extends StatelessWidget {
     required this.timestamp,
     required this.relWidth,
     required this.relHeight,
+    this.isAdmin = false,
   });
 
   String _getFormattedTimestamp(Timestamp? timestamp) {
@@ -72,16 +74,43 @@ class UserPostedAnnouncement extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      username,
-                      style: TextStyle(
-                        color: const Color(0xFF611A04),
-                        fontFamily: 'Roboto',
-                        fontSize: relWidth(15),
-                        fontWeight: FontWeight.w400,
-                        fontStyle: FontStyle.italic,
-                        letterSpacing: 0.5,
-                      ),
+                    Row(
+                      children: [
+                        Text(
+                          username,
+                          style: TextStyle(
+                            color: const Color(0xFF611A04),
+                            fontFamily: 'Roboto',
+                            fontSize: relWidth(15),
+                            fontWeight: FontWeight.w400,
+                            fontStyle: FontStyle.italic,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        if (isAdmin) ...[
+                          SizedBox(width: relWidth(6)),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: relWidth(6),
+                              vertical: relHeight(2),
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFF5B29),
+                              borderRadius: BorderRadius.circular(relWidth(8)),
+                            ),
+                            child: Text(
+                              'ADMIN',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontFamily: 'Roboto',
+                                fontSize: relWidth(8),
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     SizedBox(height: relHeight(2)),
                     Text(

@@ -151,34 +151,33 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          // After your categories grid, add this:
-Padding(
-  padding: EdgeInsets.only(
-    top: relHeight(20),
-    left: relWidth(23),
-    right: relWidth(23),
-  ),
-  child: Column(
-    children: [
-      SizedBox(height: relHeight(10)),
-      Container(
-        width: relWidth(249),
-        height: relHeight(30),
-        alignment: Alignment.center,
-        child: Text(
-          '--- No Items Yet. ---',
-          style: TextStyle(
-            fontFamily: 'RobotoCondensed',
-            fontSize: relWidth(20),
-            fontWeight: FontWeight.w500,
-            color: const Color(0x88888888),
-          ),                                                           
-          textAlign: TextAlign.center,
-        ),
-      ),
-    ],
-  ),
-),
+          Padding(
+            padding: EdgeInsets.only(
+              top: relHeight(20),
+              left: relWidth(23),
+              right: relWidth(23),
+            ),
+            child: Column(
+              children: [
+                SizedBox(height: relHeight(10)),
+                Container(
+                  width: relWidth(249),
+                  height: relHeight(30),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '--- No Items Yet. ---',
+                    style: TextStyle(
+                      fontFamily: 'RobotoCondensed',
+                      fontSize: relWidth(20),
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0x88888888),
+                    ),                                                           
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: HomeFooter(

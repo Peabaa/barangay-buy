@@ -17,6 +17,7 @@ class UserAnnouncements extends StatefulWidget {
 
 class _UserAnnouncementsState extends State<UserAnnouncements> {
   String selectedBarangay = '';
+  Future<List<Map<String, dynamic>>>? _announcementsFuture;
 
   @override
   void initState() {
@@ -33,6 +34,79 @@ class _UserAnnouncementsState extends State<UserAnnouncements> {
           .get();
       setState(() {
         selectedBarangay = userDoc.data()?['barangay'] ?? '';
+        // Update the future when barangay changes
+        if (selectedBarangay.isNotEmpty) {
+          _announcementsFuture = _fetchAllAnnouncements();
+        }
+      });
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchAllAnnouncements() async {
+    if (selectedBarangay.isEmpty) return [];
+
+    final List<Map<String, dynamic>> allAnnouncements = [];
+
+    try {
+      // 1. Fetch from general announcements collection
+      final generalAnnouncementsQuery = await FirebaseFirestore.instance
+          .collection('announcements')
+          .where('barangay', isEqualTo: selectedBarangay)
+          .get();
+
+      for (final doc in generalAnnouncementsQuery.docs) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        data['source'] = 'general';
+        allAnnouncements.add(data);
+      }
+
+      // 2. Fetch admin announcements from users with role 'admin' and matching barangay
+      final adminUsersQuery = await FirebaseFirestore.instance
+          .collection('users')
+          .where('role', isEqualTo: 'admin')
+          .where('barangay', isEqualTo: selectedBarangay)
+          .get();
+
+      for (final adminUser in adminUsersQuery.docs) {
+        final adminAnnouncementsQuery = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(adminUser.id)
+            .collection('announcements')
+            .get();
+
+        for (final announcementDoc in adminAnnouncementsQuery.docs) {
+          final data = announcementDoc.data();
+          data['id'] = announcementDoc.id;
+          data['source'] = 'admin';
+          data['adminId'] = adminUser.id;
+          allAnnouncements.add(data);
+        }
+      }
+
+      // 3. Sort all announcements by timestamp (most recent first)
+      allAnnouncements.sort((a, b) {
+        final timestampA = a['timestamp'] as Timestamp?;
+        final timestampB = b['timestamp'] as Timestamp?;
+        
+        if (timestampA == null && timestampB == null) return 0;
+        if (timestampA == null) return 1;
+        if (timestampB == null) return -1;
+        
+        return timestampB.compareTo(timestampA);
+      });
+
+      return allAnnouncements;
+    } catch (e) {
+      // Handle error silently or use proper logging
+      return [];
+    }
+  }
+
+  Future<void> _refreshAnnouncements() async {
+    if (selectedBarangay.isNotEmpty) {
+      setState(() {
+        _announcementsFuture = _fetchAllAnnouncements();
       });
     }
   }
@@ -98,83 +172,80 @@ class _UserAnnouncementsState extends State<UserAnnouncements> {
           ),
           // Announcements list
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: selectedBarangay.isEmpty
-                  ? null
-                  : FirebaseFirestore.instance
-                      .collection('announcements')
-                      .where('barangay', isEqualTo: selectedBarangay)
-                      .orderBy('timestamp', descending: true)
-                      .snapshots(),
-              builder: (context, snapshot) {
-                if (selectedBarangay.isEmpty) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Align(
-                    alignment: Alignment.topCenter,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        SizedBox(height: relHeight(10)),
-                        Container(
-                          width: relWidth(321),
-                          padding: EdgeInsets.fromLTRB(
-                            relWidth(10.125),
-                            relHeight(40.125),
-                            relWidth(40.125),
-                            relHeight(8.75),
+            child: selectedBarangay.isEmpty
+                ? const Center(child: CircularProgressIndicator())
+                : FutureBuilder<List<Map<String, dynamic>>>(
+                    future: _announcementsFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return Align(
+                          alignment: Alignment.topCenter,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              SizedBox(height: relHeight(10)),
+                              Container(
+                                width: relWidth(321),
+                                padding: EdgeInsets.fromLTRB(
+                                  relWidth(10.125),
+                                  relHeight(40.125),
+                                  relWidth(40.125),
+                                  relHeight(8.75),
+                                ),
+                                child: AspectRatio(
+                                  aspectRatio: 1 / 1,
+                                  child: Image.asset(
+                                    'assets/images/noannounce.png',
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(height: relHeight(10)),
+                              Container(
+                                width: relWidth(249),
+                                height: relHeight(26),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  'No Announcements Yet.',
+                                  style: TextStyle(
+                                    fontFamily: 'Roboto',
+                                    fontSize: relWidth(16),
+                                    fontWeight: FontWeight.w500,
+                                    color: const Color(0x88888888),
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ],
                           ),
-                          child: AspectRatio(
-                            aspectRatio: 1 / 1,
-                            child: Image.asset(
-                              'assets/images/noannounce.png',
-                              fit: BoxFit.contain,
-                            ),
-                          ),
+                        );
+                      }
+                      final announcements = snapshot.data!;
+                      return RefreshIndicator(
+                        onRefresh: _refreshAnnouncements,
+                        child: ListView.builder(
+                          padding: EdgeInsets.only(top: relHeight(10), right: relWidth(20)),
+                          itemCount: announcements.length,
+                          itemBuilder: (context, index) {
+                            final data = announcements[index];
+                            return Center(
+                              child: UserPostedAnnouncement(
+                                text: data['text'] ?? '',
+                                username: data['username'] ?? 'Unknown',
+                                timestamp: data['timestamp'],
+                                relWidth: relWidth,
+                                relHeight: relHeight,
+                                isAdmin: data['source'] == 'admin',
+                              ),
+                            );
+                          },
                         ),
-                        SizedBox(height: relHeight(10)),
-                        Container(
-                          width: relWidth(249),
-                          height: relHeight(26),
-                          alignment: Alignment.center,
-                          child: Text(
-                            'No Announcements Yet.',
-                            style: TextStyle(
-                              fontFamily: 'Roboto',
-                              fontSize: relWidth(16),
-                              fontWeight: FontWeight.w500,
-                              color: const Color(0x88888888),
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-                final docs = snapshot.data!.docs;
-                return ListView.builder(
-                  padding: EdgeInsets.only(top: relHeight(10), right: relWidth(20)),
-                  itemCount: docs.length,
-                  itemBuilder: (context, index) {
-                    final data = docs[index].data() as Map<String, dynamic>;
-                    return Center(
-                      child: UserPostedAnnouncement(
-                        text: data['text'] ?? '',
-                        username: data['username'] ?? 'Unknown',
-                        timestamp: data['timestamp'],
-                        relWidth: relWidth,
-                        relHeight: relHeight,
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+                      );
+                    },
+                  ),
           ),
         ],
       ),
