@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:barangay_buy/views/user/home.dart';
+import 'package:barangay_buy/views/user/user_notifications.dart';
 
 class HomeHeader extends StatelessWidget {
   final double Function(double) relWidth;
@@ -82,7 +83,14 @@ class HomeHeader extends StatelessWidget {
                 ),
                 // Notification button
                 GestureDetector(
-                  onTap: onNotificationTap ?? () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => UserNotificationsScreen(),
+                      ),
+                    );
+                  },
                   child: Container(
                     width: relWidth(30),
                     height: relWidth(30),
