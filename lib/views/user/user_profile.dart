@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'product_card.dart';
 
 import 'home.dart';
 import 'user_announcements.dart';
@@ -350,22 +351,64 @@ class _UserProfileState extends State<UserProfile> {
                       letterSpacing: 0.48,
                     ),
                   ),
-                  Padding(
-                    padding: EdgeInsets.only(
-                      top: relHeight(20),
-                      left: relWidth(23),
-                      right: relWidth(23),
-                    ),
-                    child: Center(
-                      child: Text(
-                        '--- No Items Added. ---',
-                        style: TextStyle(
-                          fontFamily: 'RobotoCondensed',
-                          fontSize: relWidth(20),
-                          fontWeight: FontWeight.w500,
-                          color: const Color(0x88888888),
-                        ),
-                        textAlign: TextAlign.center,
+                  Container(
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: StreamBuilder<QuerySnapshot>(
+                        stream: (selectedBarangay.isNotEmpty
+                                ? FirebaseFirestore.instance
+                                    .collection('products')
+                                    .where('sellerId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+                                    .where('barangay', isEqualTo: selectedBarangay)
+                                    .snapshots()
+                                : FirebaseFirestore.instance
+                                    .collection('products')
+                                    .where('sellerId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
+                                    .snapshots()),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return Center(child: CircularProgressIndicator());
+                          }
+                          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                            return Center(
+                              child: Text(
+                                '--- No Items Added. ---',
+                                style: TextStyle(
+                                  fontFamily: 'RobotoCondensed',
+                                  fontSize: relWidth(20),
+                                  fontWeight: FontWeight.w500,
+                                  color: const Color(0x88888888),
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            );
+                          }
+                          final products = snapshot.data!.docs;
+                          return GridView.count(
+                            crossAxisCount: 2,
+                            shrinkWrap: true,
+                            mainAxisSpacing: relHeight(12),
+                            crossAxisSpacing: relWidth(10),
+                            childAspectRatio: 0.95,
+                            physics: NeverScrollableScrollPhysics(),
+                            children: products.map((doc) {
+                              final data = doc.data() as Map<String, dynamic>;
+                              return Padding(
+                                padding: EdgeInsets.symmetric(vertical: relHeight(2), horizontal: relWidth(2)),
+                                child: SizedBox(
+                                  height: relHeight(170), // Match home.dart card height
+                                  child: ProductCard(
+                                    imageBase64: data['imageBase64'] ?? '',
+                                    name: data['productName'] ?? '',
+                                    price: data['price']?.toString() ?? '',
+                                    category: data['category'] ?? '',
+                                    sold: data['sold']?.toString() ?? '0',
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          );
+                        },
                       ),
                     ),
                   ),
