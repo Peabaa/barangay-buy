@@ -54,162 +54,167 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            SafeArea(
-              bottom: false,
-              child: Container(
-                width: double.infinity,
-                color: const Color(0xFFFF5B29),
-                child: HomeHeader(
-                  relWidth: relWidth,
-                  relHeight: relHeight,
-                  selectedBarangay: selectedBarangay,
-                  onNotificationTap: () {
-                    print('Notification tapped');
-                  },
-                ),
+      body: Column(
+        children: [
+          SafeArea(
+            bottom: false,
+            child: Container(
+              width: double.infinity,
+              color: const Color(0xFFFF5B29),
+              child: HomeHeader(
+                relWidth: relWidth,
+                relHeight: relHeight,
+                selectedBarangay: selectedBarangay,
+                onNotificationTap: () {
+                  print('Notification tapped');
+                },
               ),
             ),
-            // Home Screen Content
-            Padding(
-              padding: EdgeInsets.only(
-                top: relHeight(22),
-                left: relWidth(23),
-                right: relWidth(23),
-              ),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Browse Categories',
-                  style: TextStyle(
-                    fontFamily: 'RobotoCondensed',
-                    fontSize: relWidth(16),
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF611A04),
-                  ),
-                ),
-              ),
-            ),
-            // Categories
-            Padding(
-              padding: EdgeInsets.only(
-                left: relWidth(23),
-                right: relWidth(23),
-              ),
-              
-              child: SizedBox(
-                width: double.infinity,
-                child: GridView.count(
-                  crossAxisCount: 3,
-                  shrinkWrap: true,
-                  mainAxisSpacing: relHeight(20),
-                  crossAxisSpacing: relWidth(3),
-                  physics: NeverScrollableScrollPhysics(),
-                  children: [
-                    for (var i = 0; i < 6; i++)
-                      GestureDetector(
-                        onTap: () {
-                          // TODO: Handle button tap for category i
-                          print('Category button $i tapped');
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(relWidth(12)),
-                            color: Colors.white,
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.all(relWidth(8)),
-                            child: Image.asset(
-                              'assets/images/category${i + 1}.png', // Use your actual image names
-                              fit: BoxFit.contain,
-                              width: relWidth(106),
-                              height: relWidth(106),
-                            ),
-                          ),
+          ),
+          // Scrollable Home Screen Content
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(
+                      top: relHeight(22),
+                      left: relWidth(23),
+                      right: relWidth(23),
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Browse Categories',
+                        style: TextStyle(
+                          fontFamily: 'RobotoCondensed',
+                          fontSize: relWidth(16),
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF611A04),
                         ),
                       ),
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(
-                top: relHeight(22),
-                left: relWidth(23),
-                right: relWidth(23),
-              ),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Popular Items',
-                  style: TextStyle(
-                    fontFamily: 'RobotoCondensed',
-                    fontSize: relWidth(16),
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF611A04),
+                    ),
                   ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(
-                left: relWidth(23),
-                right: relWidth(23),
-              ),
-              // Product Listings
-              child: SizedBox(
-                width: double.infinity,
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: selectedBarangay.isNotEmpty
-                      ? FirebaseFirestore.instance
-                          .collection('products')
-                          .where('barangay', isEqualTo: selectedBarangay)
-                          .snapshots()
-                      : FirebaseFirestore.instance.collection('products').snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(child: CircularProgressIndicator());
-                    }
-                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return Center(
-                        child: Text(
-                          '--- No Items Yet. ---',
-                          style: TextStyle(
-                            fontFamily: 'RobotoCondensed',
-                            fontSize: relWidth(20),
-                            fontWeight: FontWeight.w500,
-                            color: const Color(0x88888888),
-                          ),
-                          textAlign: TextAlign.center,
+                  // Categories
+                  Padding(
+                    padding: EdgeInsets.only(
+                      left: relWidth(23),
+                      right: relWidth(23),
+                    ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: GridView.count(
+                        crossAxisCount: 3,
+                        shrinkWrap: true,
+                        mainAxisSpacing: relHeight(20),
+                        crossAxisSpacing: relWidth(3),
+                        physics: NeverScrollableScrollPhysics(),
+                        children: [
+                          for (var i = 0; i < 6; i++)
+                            GestureDetector(
+                              onTap: () {
+                                // TODO: Handle button tap for category i
+                                print('Category button $i tapped');
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(relWidth(12)),
+                                  color: Colors.white,
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.all(relWidth(8)),
+                                  child: Image.asset(
+                                    'assets/images/category${i + 1}.png', // Use your actual image names
+                                    fit: BoxFit.contain,
+                                    width: relWidth(106),
+                                    height: relWidth(106),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                      top: relHeight(22),
+                      left: relWidth(23),
+                      right: relWidth(23),
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Popular Items',
+                        style: TextStyle(
+                          fontFamily: 'RobotoCondensed',
+                          fontSize: relWidth(16),
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF611A04),
                         ),
-                      );
-                    }
-                    final products = snapshot.data!.docs;
-                    return GridView.count(
-                      crossAxisCount: 2,
-                      shrinkWrap: true,
-                      mainAxisSpacing: relHeight(20),
-                      crossAxisSpacing: relWidth(10),
-                      physics: NeverScrollableScrollPhysics(),
-                      children: products.map((doc) {
-                        final data = doc.data() as Map<String, dynamic>;
-                        return ProductCard(
-                          imageBase64: data['imageBase64'] ?? '',
-                          name: data['productName'] ?? '',
-                          price: data['price']?.toString() ?? '',
-                          category: data['category'] ?? '',
-                          sold: data['sold']?.toString() ?? '0',
-                        );
-                      }).toList(),
-                    );
-                  },
-                ),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(
+                      left: relWidth(23),
+                      right: relWidth(23),
+                    ),
+                    // Product Listings
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: StreamBuilder<QuerySnapshot>(
+                        stream: selectedBarangay.isNotEmpty
+                            ? FirebaseFirestore.instance
+                                .collection('products')
+                                .where('barangay', isEqualTo: selectedBarangay)
+                                .snapshots()
+                            : FirebaseFirestore.instance.collection('products').snapshots(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return Center(child: CircularProgressIndicator());
+                          }
+                          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                            return Center(
+                              child: Text(
+                                '--- No Items Yet. ---',
+                                style: TextStyle(
+                                  fontFamily: 'RobotoCondensed',
+                                  fontSize: relWidth(20),
+                                  fontWeight: FontWeight.w500,
+                                  color: const Color(0x88888888),
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            );
+                          }
+                          final products = snapshot.data!.docs;
+                          return GridView.count(
+                            crossAxisCount: 2,
+                            shrinkWrap: true,
+                            mainAxisSpacing: relHeight(20),
+                            crossAxisSpacing: relWidth(10),
+                            physics: NeverScrollableScrollPhysics(),
+                            children: products.map((doc) {
+                              final data = doc.data() as Map<String, dynamic>;
+                              return ProductCard(
+                                imageBase64: data['imageBase64'] ?? '',
+                                name: data['productName'] ?? '',
+                                price: data['price']?.toString() ?? '',
+                                category: data['category'] ?? '',
+                                sold: data['sold']?.toString() ?? '0',
+                              );
+                            }).toList(),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
       bottomNavigationBar: HomeFooter(
         relWidth: relWidth,

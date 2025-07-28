@@ -143,109 +143,119 @@ class _UserAnnouncementsState extends State<UserAnnouncements> {
               ),
             ),
           ),
-          // Announcements header
-          Padding(
-            padding: EdgeInsets.only(
-              top: relHeight(34),
-              left: relWidth(24),
-              right: relWidth(24),
-              bottom: relHeight(10),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Text(
-                  'Announcements',
-                  style: TextStyle(
-                    fontFamily: 'Roboto',
-                    fontSize: relWidth(16),
-                    fontStyle: FontStyle.normal,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF611A04),
-                    letterSpacing: 0.32,
-                    height: 1.17182,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-          // Announcements list
+          // Scrollable Content
           Expanded(
-            child: selectedBarangay.isEmpty
-                ? const Center(child: CircularProgressIndicator())
-                : FutureBuilder<List<Map<String, dynamic>>>(
-                    future: _announcementsFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return Align(
-                          alignment: Alignment.topCenter,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              SizedBox(height: relHeight(10)),
-                              Container(
-                                width: relWidth(321),
-                                padding: EdgeInsets.fromLTRB(
-                                  relWidth(10.125),
-                                  relHeight(40.125),
-                                  relWidth(40.125),
-                                  relHeight(8.75),
-                                ),
-                                child: AspectRatio(
-                                  aspectRatio: 1 / 1,
-                                  child: Image.asset(
-                                    'assets/images/noannounce.png',
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
-                              ),
-                              SizedBox(height: relHeight(10)),
-                              Container(
-                                width: relWidth(249),
-                                height: relHeight(26),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  'No Announcements Yet.',
-                                  style: TextStyle(
-                                    fontFamily: 'Roboto',
-                                    fontSize: relWidth(16),
-                                    fontWeight: FontWeight.w500,
-                                    color: const Color(0x88888888),
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ],
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  // Announcements header
+                  Padding(
+                    padding: EdgeInsets.only(
+                      top: relHeight(34),
+                      left: relWidth(24),
+                      right: relWidth(24),
+                      bottom: relHeight(10),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Announcements',
+                          style: TextStyle(
+                            fontFamily: 'Roboto',
+                            fontSize: relWidth(16),
+                            fontStyle: FontStyle.normal,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF611A04),
+                            letterSpacing: 0.32,
+                            height: 1.17182,
                           ),
-                        );
-                      }
-                      final announcements = snapshot.data!;
-                      return RefreshIndicator(
-                        onRefresh: _refreshAnnouncements,
-                        child: ListView.builder(
-                          padding: EdgeInsets.only(top: relHeight(10), right: relWidth(20)),
-                          itemCount: announcements.length,
-                          itemBuilder: (context, index) {
-                            final data = announcements[index];
-                            return Center(
-                              child: UserPostedAnnouncement(
-                                text: data['text'] ?? '',
-                                username: data['username'] ?? 'Unknown',
-                                timestamp: data['timestamp'],
-                                relWidth: relWidth,
-                                relHeight: relHeight,
-                                isAdmin: data['source'] == 'admin',
-                              ),
-                            );
-                          },
+                          textAlign: TextAlign.center,
                         ),
-                      );
-                    },
+                      ],
+                    ),
                   ),
+                  // Announcements list
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.6,
+                    child: selectedBarangay.isEmpty
+                        ? const Center(child: CircularProgressIndicator())
+                        : FutureBuilder<List<Map<String, dynamic>>>(
+                            future: _announcementsFuture,
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return const Center(child: CircularProgressIndicator());
+                              }
+                              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                                return Align(
+                                  alignment: Alignment.topCenter,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      SizedBox(height: relHeight(10)),
+                                      Container(
+                                        width: relWidth(321),
+                                        padding: EdgeInsets.fromLTRB(
+                                          relWidth(10.125),
+                                          relHeight(40.125),
+                                          relWidth(40.125),
+                                          relHeight(8.75),
+                                        ),
+                                        child: AspectRatio(
+                                          aspectRatio: 1 / 1,
+                                          child: Image.asset(
+                                            'assets/images/noannounce.png',
+                                            fit: BoxFit.contain,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(height: relHeight(10)),
+                                      Container(
+                                        width: relWidth(249),
+                                        height: relHeight(26),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          'No Announcements Yet.',
+                                          style: TextStyle(
+                                            fontFamily: 'Roboto',
+                                            fontSize: relWidth(16),
+                                            fontWeight: FontWeight.w500,
+                                            color: const Color(0x88888888),
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                              final announcements = snapshot.data!;
+                              return RefreshIndicator(
+                                onRefresh: _refreshAnnouncements,
+                                child: ListView.builder(
+                                  padding: EdgeInsets.only(top: relHeight(10), right: relWidth(20)),
+                                  itemCount: announcements.length,
+                                  itemBuilder: (context, index) {
+                                    final data = announcements[index];
+                                    return Center(
+                                      child: UserPostedAnnouncement(
+                                        text: data['text'] ?? '',
+                                        username: data['username'] ?? 'Unknown',
+                                        timestamp: data['timestamp'],
+                                        relWidth: relWidth,
+                                        relHeight: relHeight,
+                                        isAdmin: data['source'] == 'admin',
+                                      ),
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
