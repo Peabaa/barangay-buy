@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'product_card.dart';
 import 'home_header_footer.dart';
+import 'home.dart';
+import 'user_announcements.dart';
+import 'user_sell.dart';
+import 'user_profile.dart';
 
 class CategoryProducts extends StatelessWidget {
   final String category;
@@ -115,6 +120,37 @@ class CategoryProducts extends StatelessWidget {
             ),
           ),
         ],
+      ),
+      bottomNavigationBar: HomeFooter(
+        relWidth: relWidth,
+        relHeight: relHeight,
+        onStoreTap: () {
+           Navigator.of(context).pushReplacement(
+             MaterialPageRoute(builder: (context) => const HomePage()),
+          );
+        },
+        onAnnouncementTap: () {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const UserAnnouncements(),
+            ),
+          );
+        },
+        onSellTap: () {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const UserSell(),
+            ),
+          );
+        },
+        onProfileTap: () {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => const UserProfile(),
+            ),
+          );
+        },
+        activeTab: 'store',
       ),
     );
   }
