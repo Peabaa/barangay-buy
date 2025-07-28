@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:barangay_buy/views/user/home.dart';
 import 'package:barangay_buy/views/user/user_notifications.dart';
 
+
 class HomeHeader extends StatelessWidget {
   final double Function(double) relWidth;
   final double Function(double) relHeight;
   final String selectedBarangay;
   final VoidCallback? onNotificationTap;
+  final ValueChanged<String>? onSearchChanged;
+  final ValueChanged<String>? onSearchSubmitted;
 
   const HomeHeader({
     super.key,
@@ -14,6 +17,8 @@ class HomeHeader extends StatelessWidget {
     required this.relHeight,
     this.selectedBarangay = 'Banilad',
     this.onNotificationTap,
+    this.onSearchChanged,
+    this.onSearchSubmitted,
   });
 
   @override
@@ -121,6 +126,8 @@ class HomeHeader extends StatelessWidget {
               ),
             ),
             child: TextField(
+              onChanged: onSearchChanged,
+              onSubmitted: onSearchSubmitted,
               decoration: InputDecoration(
                 hintStyle: TextStyle(
                   color: Color(0xFF611A04).withOpacity(0.6),

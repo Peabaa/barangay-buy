@@ -8,7 +8,9 @@ import 'home_header_footer.dart';
 import 'user_announcements.dart';
 import 'user_sell.dart';
 import 'user_profile.dart';
+
 import 'category_products.dart';
+import 'search_results.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,6 +21,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   String selectedBarangay = '';
+  String searchQuery = '';
 
   @override
   void initState() {
@@ -68,6 +71,25 @@ class _HomePageState extends State<HomePage> {
                 selectedBarangay: selectedBarangay,
                 onNotificationTap: () {
                   print('Notification tapped');
+                },
+                onSearchChanged: (query) {
+                  setState(() {
+                    searchQuery = query;
+                  });
+                },
+                onSearchSubmitted: (query) {
+                  if (query.trim().isNotEmpty) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => SearchResults(
+                          searchQuery: query,
+                          barangay: selectedBarangay,
+                          relWidth: relWidth,
+                          relHeight: relHeight,
+                        ),
+                      ),
+                    );
+                  }
                 },
               ),
             ),
@@ -216,6 +238,7 @@ class _HomePageState extends State<HomePage> {
                                 price: data['price']?.toString() ?? '',
                                 category: data['category'] ?? '',
                                 sold: data['sold']?.toString() ?? '0',
+                                productId: doc.id,
                               );
                             }).toList(),
                           );

@@ -155,16 +155,20 @@ class _UserSellState extends State<UserSell> {
       };
 
       // Add to user's products collection
-      await FirebaseFirestore.instance
+      final userProductRef = await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .collection('products')
           .add(productData);
 
       // Also add to a global products collection for easier searching
-      await FirebaseFirestore.instance
+      final globalProductRef = await FirebaseFirestore.instance
           .collection('products')
           .add(productData);
+
+      // Update both documents to include their Firestore document ID as productId
+      await userProductRef.update({'productId': globalProductRef.id});
+      await globalProductRef.update({'productId': globalProductRef.id});
 
       _showSnackBar('Product listed successfully!');
       _clearForm();

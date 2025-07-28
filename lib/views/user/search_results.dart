@@ -1,26 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'product_card.dart';
 import 'home_header_footer.dart';
-import 'home.dart';
-import 'user_announcements.dart';
-import 'user_sell.dart';
-import 'user_profile.dart';
 
-class CategoryProducts extends StatelessWidget {
-  final String category;
+class SearchResults extends StatelessWidget {
+  final String searchQuery;
   final String barangay;
   final double Function(double) relWidth;
   final double Function(double) relHeight;
 
-  const CategoryProducts({
-    super.key,
-    required this.category,
+  const SearchResults({
+    Key? key,
+    required this.searchQuery,
     required this.barangay,
     required this.relWidth,
     required this.relHeight,
-  });
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -30,39 +25,42 @@ class CategoryProducts extends StatelessWidget {
         children: [
           SafeArea(
             bottom: false,
-            child: Container(
-              width: double.infinity,
-              color: const Color(0xFFFF5B29),
-              child: Stack(
-                alignment: Alignment.centerLeft,
-                children: [
-                  HomeHeader(
+            child: Stack(
+              children: [
+                Container(
+                  width: double.infinity,
+                  color: const Color(0xFFFF5B29),
+                  child: HomeHeader(
                     relWidth: relWidth,
                     relHeight: relHeight,
                     selectedBarangay: barangay,
                     onNotificationTap: () {},
+                    onSearchChanged: (_) {},
                   ),
-                  Positioned(
-                    left: 0,
-                    child: IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
+                ),
+                Positioned(
+                  left: relWidth(10),
+                  top: relHeight(10),
+                  child: IconButton(
+                    icon: Icon(Icons.arrow_back, color: Colors.white, size: relWidth(28)),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           Padding(
             padding: EdgeInsets.only(
-              top: relHeight(22),
+              top: relHeight(18),
               left: relWidth(23),
               right: relWidth(23),
             ),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                category,
+                'Search Results',
                 style: TextStyle(
                   fontFamily: 'RobotoCondensed',
                   fontSize: relWidth(16),
@@ -74,37 +72,65 @@ class CategoryProducts extends StatelessWidget {
           ),
           Expanded(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: relWidth(16), vertical: relHeight(16)),
+              padding: EdgeInsets.symmetric(
+                horizontal: relWidth(23),
+                vertical: relHeight(10),
+              ),
               child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('products')
-                    .where('barangay', isEqualTo: barangay)
-                    .where('category', isEqualTo: category)
-                    .snapshots(),
+                stream: barangay.isNotEmpty
+                    ? FirebaseFirestore.instance
+                        .collection('products')
+                        .where('barangay', isEqualTo: barangay)
+                        .snapshots()
+                    : FirebaseFirestore.instance.collection('products').snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return Center(child: CircularProgressIndicator());
                   }
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                     return Center(
                       child: Text(
-                        'No products found in this category.',
+                        '--- No Items Found. ---',
                         style: TextStyle(
                           fontFamily: 'RobotoCondensed',
-                          fontSize: relWidth(18),
+                          fontSize: relWidth(20),
+                          fontWeight: FontWeight.w500,
                           color: const Color(0x88888888),
                         ),
+                        textAlign: TextAlign.center,
                       ),
                     );
                   }
                   final products = snapshot.data!.docs;
+                  final filteredProducts = searchQuery.trim().isEmpty
+                      ? products
+                      : products.where((doc) {
+                          final data = doc.data() as Map<String, dynamic>;
+                          final name = (data['productName'] ?? '').toString().toLowerCase();
+                          final query = searchQuery.toLowerCase();
+                          return name.contains(query);
+                        }).toList();
+                  if (filteredProducts.isEmpty) {
+                    return Center(
+                      child: Text(
+                        '--- No Items Found. ---',
+                        style: TextStyle(
+                          fontFamily: 'RobotoCondensed',
+                          fontSize: relWidth(20),
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0x88888888),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  }
                   return GridView.count(
                     crossAxisCount: 2,
                     shrinkWrap: true,
                     mainAxisSpacing: relHeight(20),
                     crossAxisSpacing: relWidth(10),
-                    childAspectRatio: 0.95,
-                    children: products.map((doc) {
+                    physics: const BouncingScrollPhysics(),
+                    children: filteredProducts.map((doc) {
                       final data = doc.data() as Map<String, dynamic>;
                       return ProductCard(
                         imageBase64: data['imageBase64'] ?? '',
@@ -121,37 +147,6 @@ class CategoryProducts extends StatelessWidget {
             ),
           ),
         ],
-      ),
-      bottomNavigationBar: HomeFooter(
-        relWidth: relWidth,
-        relHeight: relHeight,
-        onStoreTap: () {
-           Navigator.of(context).pushReplacement(
-             MaterialPageRoute(builder: (context) => const HomePage()),
-          );
-        },
-        onAnnouncementTap: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const UserAnnouncements(),
-            ),
-          );
-        },
-        onSellTap: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const UserSell(),
-            ),
-          );
-        },
-        onProfileTap: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const UserProfile(),
-            ),
-          );
-        },
-        activeTab: 'store',
       ),
     );
   }

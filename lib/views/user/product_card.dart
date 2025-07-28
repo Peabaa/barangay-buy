@@ -2,12 +2,17 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 
-class ProductCard extends StatelessWidget {
+
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class ProductCard extends StatefulWidget {
   final String imageBase64;
   final String name;
   final String price;
   final String category;
   final String sold;
+  final String productId;
 
   const ProductCard({
     super.key,
@@ -16,7 +21,56 @@ class ProductCard extends StatelessWidget {
     required this.price,
     required this.category,
     required this.sold,
+    required this.productId,
   });
+
+
+  @override
+  State<ProductCard> createState() => _ProductCardState();
+}
+
+class _ProductCardState extends State<ProductCard> {
+  bool isFavorite = false;
+  String? userId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFavoriteStatus();
+  }
+
+  Future<void> _loadFavoriteStatus() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    userId = user.uid;
+    final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+    final favorites = userDoc.data()?['favorites'] as List<dynamic>?;
+    setState(() {
+      isFavorite = favorites != null && favorites.contains(widget.productId);
+    });
+  }
+
+  Future<void> _toggleFavorite() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+    final userRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+    final userDoc = await userRef.get();
+    final favorites = (userDoc.data()?['favorites'] as List<dynamic>?) ?? [];
+    if (isFavorite) {
+      // Remove from favorites
+      await userRef.update({
+        'favorites': FieldValue.arrayRemove([widget.productId])
+      });
+    } else {
+      // Add to favorites
+      await userRef.set({
+        'favorites': FieldValue.arrayUnion([widget.productId])
+      }, SetOptions(merge: true));
+    }
+    setState(() {
+      isFavorite = !isFavorite;
+    });
+  }
 
   Color getCategoryColor(String cat) {
     switch (cat) {
@@ -33,9 +87,9 @@ class ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Uint8List? imageBytes;
-    if (imageBase64.isNotEmpty) {
+    if (widget.imageBase64.isNotEmpty) {
       try {
-        imageBytes = base64Decode(imageBase64);
+        imageBytes = base64Decode(widget.imageBase64);
       } catch (e) {
         imageBytes = null;
       }
@@ -65,7 +119,7 @@ class ProductCard extends StatelessWidget {
             ),
             SizedBox(height: 6),
             Text(
-              name,
+              widget.name,
               style: TextStyle(
                 fontFamily: 'RobotoCondensed',
                 fontWeight: FontWeight.w600,
@@ -76,7 +130,7 @@ class ProductCard extends StatelessWidget {
             ),
             Row(
               children: [
-                Text('₱ $price',
+                Text('₱ ${widget.price}',
                   style: TextStyle(
                     fontFamily: 'RobotoCondensed',
                     fontWeight: FontWeight.bold,
@@ -85,7 +139,14 @@ class ProductCard extends StatelessWidget {
                   ),
                 ),
                 Spacer(),
-                Icon(Icons.favorite_border, color: Colors.red, size: 16),
+                GestureDetector(
+                  onTap: _toggleFavorite,
+                  child: Icon(
+                    isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: isFavorite ? Colors.red : Colors.red.withOpacity(0.5),
+                    size: 18,
+                  ),
+                ),
               ],
             ),
             Row(
@@ -93,11 +154,11 @@ class ProductCard extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: getCategoryColor(category),
+                    color: getCategoryColor(widget.category),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    category,
+                    widget.category,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 10,
@@ -106,7 +167,7 @@ class ProductCard extends StatelessWidget {
                   ),
                 ),
                 Spacer(),
-                Text('$sold sold',
+                Text('${widget.sold} sold',
                   style: TextStyle(
                     fontSize: 10,
                     color: Colors.grey[600],

@@ -403,6 +403,7 @@ class _UserProfileState extends State<UserProfile> {
                                     price: data['price']?.toString() ?? '',
                                     category: data['category'] ?? '',
                                     sold: data['sold']?.toString() ?? '0',
+                                    productId: doc.id,
                                   ),
                                 ),
                               );
@@ -439,22 +440,91 @@ class _UserProfileState extends State<UserProfile> {
                       letterSpacing: 0.48,
                     ),
                   ),
-                  Padding(
-                    padding: EdgeInsets.only(
-                      top: relHeight(20),
-                      left: relWidth(23),
-                      right: relWidth(23),
-                    ),
-                    child: Center(
-                      child: Text(
-                        '--- No Favorite Listings Yet. ---',
-                        style: TextStyle(
-                          fontFamily: 'RobotoCondensed',
-                          fontSize: relWidth(20),
-                          fontWeight: FontWeight.w500,
-                          color: const Color(0x88888888),
-                        ),
-                        textAlign: TextAlign.center,
+                  Container(
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: FutureBuilder<DocumentSnapshot>(
+                        future: FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(FirebaseAuth.instance.currentUser?.uid)
+                            .get(),
+                        builder: (context, userSnapshot) {
+                          if (userSnapshot.connectionState == ConnectionState.waiting) {
+                            return Center(child: CircularProgressIndicator());
+                          }
+                          if (!userSnapshot.hasData || userSnapshot.data == null) {
+                            return Center(child: Text('--- No Favorite Listings Yet. ---',
+                              style: TextStyle(
+                                fontFamily: 'RobotoCondensed',
+                                fontSize: relWidth(20),
+                                fontWeight: FontWeight.w500,
+                                color: const Color(0x88888888),
+                              ),
+                              textAlign: TextAlign.center,
+                            ));
+                          }
+                          final favorites = (userSnapshot.data!.data() as Map<String, dynamic>?)?['favorites'] as List<dynamic>?;
+                          if (favorites == null || favorites.isEmpty) {
+                            return Center(child: Text('--- No Favorite Listings Yet ---',
+                              style: TextStyle(
+                                fontFamily: 'RobotoCondensed',
+                                fontSize: relWidth(20),
+                                fontWeight: FontWeight.w500,
+                                color: const Color(0x88888888),
+                              ),
+                              textAlign: TextAlign.center,
+                            ));
+                          }
+                          return StreamBuilder<QuerySnapshot>(
+                            stream: FirebaseFirestore.instance
+                                .collection('products')
+                                .where('productId', whereIn: favorites.length > 10 ? favorites.sublist(0, 10) : favorites)
+                                .where('barangay', isEqualTo: selectedBarangay)
+                                .snapshots(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return Center(child: CircularProgressIndicator());
+                              }
+                              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                                return Center(child: Text('--- No Favorite Listings Yet. ---',
+                                  style: TextStyle(
+                                    fontFamily: 'RobotoCondensed',
+                                    fontSize: relWidth(20),
+                                    fontWeight: FontWeight.w500,
+                                    color: const Color(0x88888888),
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ));
+                              }
+                              final favProducts = snapshot.data!.docs;
+                              return GridView.count(
+                                crossAxisCount: 2,
+                                shrinkWrap: true,
+                                mainAxisSpacing: relHeight(12),
+                                crossAxisSpacing: relWidth(10),
+                                childAspectRatio: 0.95,
+                                physics: NeverScrollableScrollPhysics(),
+                                children: favProducts.map((doc) {
+                                  final data = doc.data() as Map<String, dynamic>;
+                                  return Padding(
+                                    padding: EdgeInsets.symmetric(vertical: relHeight(2), horizontal: relWidth(2)),
+                                    child: SizedBox(
+                                      height: relHeight(170),
+                                      child: ProductCard(
+                                        imageBase64: data['imageBase64'] ?? '',
+                                        name: data['productName'] ?? '',
+                                        price: data['price']?.toString() ?? '',
+                                        category: data['category'] ?? '',
+                                        sold: data['sold']?.toString() ?? '0',
+                                        productId: doc.id,
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                              );
+                            },
+                          );
+                        },
                       ),
                     ),
                   ),
