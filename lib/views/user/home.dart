@@ -8,6 +8,7 @@ import 'home_header_footer.dart';
 import 'user_announcements.dart';
 import 'user_sell.dart';
 import 'user_profile.dart';
+import 'category_products.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -110,11 +111,22 @@ class _HomePageState extends State<HomePage> {
                         crossAxisSpacing: relWidth(3),
                         physics: NeverScrollableScrollPhysics(),
                         children: [
-                          for (var i = 0; i < 6; i++)
-                            GestureDetector(
+                          // Category names
+                          ...["Fashion", "Electronics", "Home Living", "Health & Beauty", "Groceries", "Entertainment"].asMap().entries.map((entry) {
+                            final i = entry.key;
+                            final categoryName = entry.value;
+                            return GestureDetector(
                               onTap: () {
-                                // TODO: Handle button tap for category i
-                                print('Category button $i tapped');
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (context) => CategoryProducts(
+                                      category: categoryName,
+                                      barangay: selectedBarangay,
+                                      relWidth: relWidth,
+                                      relHeight: relHeight,
+                                    ),
+                                  ),
+                                );
                               },
                               child: Container(
                                 decoration: BoxDecoration(
@@ -124,14 +136,15 @@ class _HomePageState extends State<HomePage> {
                                 child: Padding(
                                   padding: EdgeInsets.all(relWidth(8)),
                                   child: Image.asset(
-                                    'assets/images/category${i + 1}.png', // Use your actual image names
+                                    'assets/images/category${i + 1}.png',
                                     fit: BoxFit.contain,
                                     width: relWidth(106),
                                     height: relWidth(106),
                                   ),
                                 ),
                               ),
-                            ),
+                            );
+                          }),
                         ],
                       ),
                     ),
