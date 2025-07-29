@@ -60,7 +60,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     Stack(
                       alignment: Alignment.center,
                       children: [
-                        Text( // Text Border Color
+                        Text( 
                           'BarangayBuy',
                           style: TextStyle(
                             fontFamily: 'SofiaSansCondensed',
@@ -68,7 +68,7 @@ class _SplashScreenState extends State<SplashScreen> {
                             foreground: (Paint()
                               ..style = PaintingStyle.stroke
                               ..strokeWidth = 2
-                              ..color = Colors.white), // Border color
+                              ..color = Colors.white), 
                             shadows: [
                               Shadow(
                                 color: Colors.black26,
@@ -78,7 +78,7 @@ class _SplashScreenState extends State<SplashScreen> {
                             ],
                           ),
                         ),
-                        Text( // Text Fill Color
+                        Text( 
                           'BarangayBuy',
                           style: TextStyle(
                             fontFamily: 'SofiaSansCondensed',

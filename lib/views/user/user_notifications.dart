@@ -277,7 +277,7 @@ class _UserNotificationsScreenState extends State<UserNotificationsScreen> {
                   width: relWidth(334),
                   height: relHeight(96),
                   decoration: BoxDecoration(
-                    color: Color(0x7329FF29), // rgba(41,255,41,0.45)
+                    color: Color(0x7329FF29), 
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: Color.fromRGBO(0, 0, 0, 0.22),
@@ -450,7 +450,6 @@ class _UserNotificationsScreenState extends State<UserNotificationsScreen> {
                 ),
               ),
             ],
-            // ...existing code...
           ],
         ),
       ),

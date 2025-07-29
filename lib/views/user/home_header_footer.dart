@@ -36,7 +36,6 @@ class HomeHeader extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Current Barangay
                 Padding(
                   padding: EdgeInsets.only(left: relWidth(5)),
                   child: Container(

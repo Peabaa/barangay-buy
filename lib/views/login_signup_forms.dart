@@ -70,7 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             foreground: Paint()
                               ..style = PaintingStyle.stroke
                               ..strokeWidth = 2
-                              ..color = Colors.white, // Border color
+                              ..color = Colors.white, 
                             shadows: [
                               Shadow(
                                 color: Colors.black26,
@@ -125,7 +125,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   foreground: Paint()
                                     ..style = PaintingStyle.stroke
                                     ..strokeWidth = 2
-                                    ..color = Color(0xFFA22304), // Border color
+                                    ..color = Color(0xFFA22304), 
                                   shadows: [
                                     Shadow(
                                       color: Colors.black26,
@@ -339,7 +339,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           if (uid != null) {
                                             final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
                                             final role = doc.data()?['role'];
-                                            final barangay = doc.data()?['barangay'] ?? 'N/A'; // Default if not set
+                                            final barangay = doc.data()?['barangay'] ?? 'N/A'; 
                                             if (role == 'admin') {
                                               Navigator.of(context).pushReplacement(
                                                 MaterialPageRoute(

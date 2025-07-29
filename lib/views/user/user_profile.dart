@@ -396,7 +396,7 @@ class _UserProfileState extends State<UserProfile> {
                               return Padding(
                                 padding: EdgeInsets.symmetric(vertical: relHeight(2), horizontal: relWidth(2)),
                                 child: SizedBox(
-                                  height: relHeight(170), // Match home.dart card height
+                                  height: relHeight(170),
                                   child: ProductCard(
                                     imageBase64: data['imageBase64'] ?? '',
                                     name: data['productName'] ?? '',

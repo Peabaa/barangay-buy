@@ -63,7 +63,6 @@ class _SelectBarangayState extends State<SelectBarangay> {
                   ),
                 ],
               ),
-              //Welcome User
               child: Padding(
                 padding: EdgeInsets.all(relWidth(60)),
                 child: Column(
@@ -109,11 +108,11 @@ class _SelectBarangayState extends State<SelectBarangay> {
                       height: relHeight(35),
                       padding: EdgeInsets.symmetric(horizontal: relWidth(16)),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.8), // opacity: 0.8
+                        color: Colors.white.withOpacity(0.8), 
                         borderRadius: BorderRadius.circular(relWidth(23)),
                         border: Border.all(
-                          color: Color(0xFF611A04), // stroke: #611A04
-                          width: 1, // stroke-width: 1px
+                          color: Color(0xFF611A04), 
+                          width: 1, 
                         ),
                       ),
                       child: DropdownButtonHideUnderline(
@@ -128,7 +127,7 @@ class _SelectBarangayState extends State<SelectBarangay> {
                               fontWeight: FontWeight.w700,
                               color: Color(0xFF611A04),
                               letterSpacing: 0.32,
-                              height: 1.17182, // line-height: 117.182%
+                              height: 1.17182, 
                             ),
                           ),
                           style: TextStyle(

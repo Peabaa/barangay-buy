@@ -31,7 +31,6 @@ class AdminHeader extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // Current Barangay
                 Padding(
                   padding: EdgeInsets.only(left: relWidth(5)),
                   child: Container(
@@ -275,11 +274,9 @@ class AdminFooter extends StatelessWidget {
                                 try {
                                   await FirebaseAuth.instance.signOut();
                                 } catch (e) {
-                                  // Optionally handle error (e.g., show a snackbar)
+                                  print('Error logging out: $e');
                                 }
-                                // Add any other logout logic here (e.g., clear tokens, user data)
                                 if (onUserTap != null) onUserTap!();
-                                // Navigate to login/signup screen
                                 Navigator.of(context).pushAndRemoveUntil(
                                   MaterialPageRoute(
                                     builder: (context) => LoginSignupScreen(),

@@ -402,7 +402,7 @@ class _UserSellState extends State<UserSell> {
                               ),
                             ),
                             Container(
-                              height: relHeight(28), // Same height as other input fields
+                              height: relHeight(28), 
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(relWidth(23)),
