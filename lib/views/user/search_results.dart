@@ -10,12 +10,12 @@ class SearchResults extends StatelessWidget {
   final double Function(double) relHeight;
 
   const SearchResults({
-    Key? key,
+    super.key,
     required this.searchQuery,
     required this.barangay,
     required this.relWidth,
     required this.relHeight,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

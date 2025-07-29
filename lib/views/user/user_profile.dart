@@ -6,7 +6,6 @@ import 'product_card.dart';
 
 import 'home.dart';
 import 'user_announcements.dart';
-import 'user_posted_announcement.dart';
 import 'user_sell.dart';
 import 'home_header_footer.dart';
 import '../login_signup.dart';
@@ -394,7 +393,7 @@ class _UserProfileState extends State<UserProfile> {
                             children: products.map((doc) {
                               final data = doc.data() as Map<String, dynamic>;
                               return Padding(
-                                padding: EdgeInsets.symmetric(vertical: relHeight(2), horizontal: relWidth(2)),
+                                padding: EdgeInsets.symmetric(horizontal: relWidth(2)),
                                 child: SizedBox(
                                   height: relHeight(170),
                                   child: ProductCard(

@@ -4,7 +4,6 @@ import '../controllers/auth_controller.dart';
 import 'select_barangay.dart';
 import 'user/home.dart';
 import 'admin/admin_announcements.dart';
-import 'login_signup.dart';
 
 class LoginScreen extends StatefulWidget {
   final bool isLogin;

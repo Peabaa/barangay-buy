@@ -103,8 +103,8 @@ class _ProductCardState extends State<ProductCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              height: 90,
+            SizedBox(
+              height: 68.5,
               width: double.infinity,
               child: imageBytes != null
                   ? Image.memory(

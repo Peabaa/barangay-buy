@@ -165,7 +165,7 @@ class _AdminAnnouncementsState extends State<AdminAnnouncements> {
 
                                                   await FirebaseFirestore.instance
                                                       .collection('users')
-                                                      .doc(user!.uid)
+                                                      .doc(user.uid)
                                                       .collection('announcements')
                                                       .add({
                                                     'text': text,

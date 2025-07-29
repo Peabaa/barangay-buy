@@ -9,7 +9,7 @@ import 'package:barangay_buy/views/user/user_sell.dart';
 import '../login_signup.dart';
 
 class UserNotificationsScreen extends StatefulWidget {
-  const UserNotificationsScreen({Key? key}) : super(key: key);
+  const UserNotificationsScreen({super.key});
 
   @override
   State<UserNotificationsScreen> createState() => _UserNotificationsScreenState();
