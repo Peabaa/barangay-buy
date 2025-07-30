@@ -5,6 +5,7 @@ import 'dart:typed_data';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'product_description.dart';
 
 class ProductCard extends StatefulWidget {
   final String imageBase64;
@@ -94,7 +95,22 @@ class _ProductCardState extends State<ProductCard> {
         imageBytes = null;
       }
     }
-    return Card(
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ProductDescription(
+              productId: widget.productId,
+              imageBase64: widget.imageBase64,
+              name: widget.name,
+              price: widget.price,
+              category: widget.category,
+              sold: widget.sold, 
+            ),
+          ),
+        );
+      },
+      child: Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 2,
       child: Padding(
@@ -178,6 +194,7 @@ class _ProductCardState extends State<ProductCard> {
           ],
         ),
       ),
+    )
     );
   }
 }
