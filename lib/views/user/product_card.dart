@@ -150,7 +150,7 @@ class _ProductCardState extends State<ProductCard> {
                   style: TextStyle(
                     fontFamily: 'RobotoCondensed',
                     fontWeight: FontWeight.bold,
-                    fontSize: 13,
+                    fontSize: 15,
                     color: Color(0xFFD84315),
                   ),
                 ),
