@@ -215,7 +215,7 @@ class _ProductDescriptionState extends State<ProductDescription> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Container(
-                                  width: relWidth(230), // Adjust this value as needed
+                                  width: relWidth(230),
                                   child: Text(
                                     widget.name,
                                     textAlign: TextAlign.left,
@@ -231,7 +231,7 @@ class _ProductDescriptionState extends State<ProductDescription> {
                                     softWrap: true,
                                   ),
                                 ),
-                                SizedBox(height: relHeight(3)),
+                                SizedBox(height: relHeight(10)),
                                 Row(
                                   children: [
                                     Image.asset(
@@ -241,7 +241,7 @@ class _ProductDescriptionState extends State<ProductDescription> {
                                     ),
                                     SizedBox(width: relWidth(8)),
                                     Container(
-                                      width: relWidth(120),
+                                      width: relWidth(60),
                                       height: relHeight(26),
                                       child: Center(
                                         child: Text(
@@ -261,7 +261,7 @@ class _ProductDescriptionState extends State<ProductDescription> {
                                     ),
                                   ],
                                 ),
-                                SizedBox(height: relHeight(5)),
+                                SizedBox(height: relHeight(10)),
                                 Container(
                                   padding: EdgeInsets.symmetric(horizontal: relWidth(12), vertical: relHeight(6)),
                                   decoration: BoxDecoration(
@@ -442,7 +442,6 @@ class _ProductDescriptionState extends State<ProductDescription> {
                       },
                     ),
                   ),
-// Add this field to the state class
                    SizedBox(height: relHeight(12)),
                    Center(
                      child: Container(
@@ -570,7 +569,21 @@ class _ProductDescriptionState extends State<ProductDescription> {
                                                    onPressed: () async {
                                                      final text = commentController.text.trim();
                                                      if (text.isNotEmpty) {
-                                                       // TODO: Implement comment posting functionality
+                                                       final user = FirebaseAuth.instance.currentUser;
+                                                       String username = 'Unknown';
+                                                       if (user != null) {
+                                                         final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+                                                         username = userDoc.data()?['username'] ?? user.email ?? 'Unknown';
+                                                       }
+                                                       await FirebaseFirestore.instance
+                                                         .collection('products')
+                                                         .doc(widget.productId)
+                                                         .collection('comments')
+                                                         .add({
+                                                           'username': username,
+                                                           'comment': text,
+                                                           'timestamp': FieldValue.serverTimestamp(),
+                                                         });
                                                        Navigator.of(context).pop();
                                                        ScaffoldMessenger.of(context).showSnackBar(
                                                          SnackBar(content: Text('Comment posted successfully!')),
@@ -635,463 +648,373 @@ class _ProductDescriptionState extends State<ProductDescription> {
                                ),
                              ),
                            ),
-                           SizedBox(height: relHeight(20)),
-                                                       // First Comment
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: relWidth(18)),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Padding(
-                                    padding: EdgeInsets.only(top: relHeight(5)),
-                                    child: Image.asset(
-                                      'assets/images/UserCircle.png',
-                                      width: relWidth(39),
-                                      height: relHeight(39),
-                                    ),
-                                  ),
-                                 SizedBox(width: relWidth(10)),
-                                 Expanded(
-                                   child: Column(
-                                     crossAxisAlignment: CrossAxisAlignment.start,
-                                     children: [
-                                       Container(
-                                         width: relWidth(120),
-                                         height: relHeight(22),
-                                         child: Text(
-                                           'Kanye West',
-                                           style: TextStyle(
-                                             color: Color(0xFF611A04).withOpacity(0.50),
-                                             fontFamily: 'Roboto',
-                                             fontSize: relWidth(20),
-                                             fontStyle: FontStyle.italic,
-                                             fontWeight: FontWeight.w400,
-                                             height: 1.17182,
-                                             letterSpacing: relWidth(0.4),
-                                           ),
-                                         ),
-                                       ),
-                                       SizedBox(height: relHeight(4)),
-                                       Container(
-                                         width: relWidth(293),
-                                         child: Text(
-                                           'Where do I avail this product?',
-                                           style: TextStyle(
-                                             color: Color(0xFF611A04),
-                                             fontFamily: 'Roboto',
-                                             fontSize: relWidth(15),
-                                             fontStyle: FontStyle.normal,
-                                             fontWeight: FontWeight.w400,
-                                             height: 1.17182,
-                                             letterSpacing: relWidth(0.3),
-                                           ),
-                                         ),
-                                       ),
-                                       SizedBox(height: relHeight(6)),
-                                       if (!repliesExpanded) ...[
-                                         Row(
-                                           children: [
-                                             Expanded(
-                                               child: Container(
-                                                 height: 1,
-                                                 color: Color.fromRGBO(0, 0, 0, 0.22),
-                                               ),
-                                             ),
-                                             SizedBox(width: relWidth(8)),
-                                             GestureDetector(
-                                               onTap: () {
-                                                 setState(() {
-                                                   repliesExpanded = !repliesExpanded;
-                                                 });
-                                               },
-                                               child: Row(
-                                                 mainAxisSize: MainAxisSize.min,
-                                                 children: [
-                                                   Text(
-                                                     'View Replies',
-                                                     style: TextStyle(
-                                                       color: Color.fromRGBO(0, 0, 0, 0.22),
-                                                       fontFamily: 'Roboto',
-                                                       fontSize: relWidth(11),
-                                                       fontStyle: FontStyle.normal,
-                                                       fontWeight: FontWeight.w400,
-                                                       height: 1.17182,
-                                                       letterSpacing: relWidth(0.22),
-                                                     ),
-                                                   ),
-                                                   SizedBox(width: relWidth(4)),
-                                                   Icon(
-                                                     Icons.keyboard_arrow_down,
-                                                     color: Color.fromRGBO(0, 0, 0, 0.22),
-                                                     size: relWidth(12),
-                                                   ),
-                                                 ],
-                                               ),
-                                             ),
-                                           ],
-                                         ),
-                                       ],
-                                       if (repliesExpanded) ...[
-                                         SizedBox(height: relHeight(15)),
-                                         // Reply 1
-                                         Padding(
-                                           padding: EdgeInsets.only(left: relWidth(42)),
-                                           child: Row(
-                                             crossAxisAlignment: CrossAxisAlignment.start,
-                                             children: [
-                                               Image.asset(
-                                                 'assets/images/UserCircle.png',
-                                                 width: relWidth(39),
-                                                 height: relHeight(39),
-                                               ),
-                                               SizedBox(width: relWidth(10)),
-                                               Expanded(
-                                                 child: Column(
-                                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                                   children: [
-                                                     Container(
-                                                       width: relWidth(150),
-                                                       height: relHeight(22),
-                                                       child: Text(
-                                                         'Taylor Swift',
-                                                         style: TextStyle(
-                                                           color: Color(0xFF611A04).withOpacity(0.50),
-                                                           fontFamily: 'Roboto',
-                                                           fontSize: relWidth(20),
-                                                           fontStyle: FontStyle.italic,
-                                                           fontWeight: FontWeight.w400,
-                                                           height: 1.17182,
-                                                           letterSpacing: relWidth(0.4),
-                                                         ),
-                                                       ),
-                                                     ),
-                                                     SizedBox(height: relHeight(4)),
-                                                     Container(
-                                                       width: relWidth(293),
-                                                       child: Text(
-                                                         'Hi! Here is my number if you want to arrange a meetup! (+123456789)',
-                                                         style: TextStyle(
-                                                           color: Color(0xFF611A04),
-                                                           fontFamily: 'Roboto',
-                                                           fontSize: relWidth(15),
-                                                           fontStyle: FontStyle.normal,
-                                                           fontWeight: FontWeight.w400,
-                                                           height: 1.17182,
-                                                           letterSpacing: relWidth(0.3),
-                                                         ),
-                                                       ),
-                                                     ),
-                                                   ],
-                                                 ),
-                                               ),
-                                             ],
-                                           ),
-                                         ),
-                                         SizedBox(height: relHeight(15)),
-                                         // Reply 2
-                                         Padding(
-                                           padding: EdgeInsets.only(left: relWidth(42)),
-                                           child: Row(
-                                             crossAxisAlignment: CrossAxisAlignment.start,
-                                             children: [
-                                               Image.asset(
-                                                 'assets/images/UserCircle.png',
-                                                 width: relWidth(39),
-                                                 height: relHeight(39),
-                                               ),
-                                               SizedBox(width: relWidth(10)),
-                                               Expanded(
-                                                 child: Column(
-                                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                                   children: [
-                                                     Container(
-                                                       width: relWidth(150),
-                                                       height: relHeight(22),
-                                                       child: Text(
-                                                         'Kanye West',
-                                                         style: TextStyle(
-                                                           color: Color(0xFF611A04).withOpacity(0.50),
-                                                           fontFamily: 'Roboto',
-                                                           fontSize: relWidth(20),
-                                                           fontStyle: FontStyle.italic,
-                                                           fontWeight: FontWeight.w400,
-                                                           height: 1.17182,
-                                                           letterSpacing: relWidth(0.4),
-                                                         ),
-                                                       ),
-                                                     ),
-                                                     SizedBox(height: relHeight(4)),
-                                                     Container(
-                                                       width: relWidth(293),
-                                                       child: Text(
-                                                         'Thank you!',
-                                                         style: TextStyle(
-                                                           color: Color(0xFF611A04),
-                                                           fontFamily: 'Roboto',
-                                                           fontSize: relWidth(15),
-                                                           fontStyle: FontStyle.normal,
-                                                           fontWeight: FontWeight.w400,
-                                                           height: 1.17182,
-                                                           letterSpacing: relWidth(0.3),
-                                                         ),
-                                                       ),
-                                                     ),
-                                                   ],
-                                                 ),
-                                               ),
-                                             ],
-                                           ),
-                                         ),
-                                         SizedBox(height: relHeight(15)),
-                                         // Hide Replies button at bottom
-                                         Row(
-                                           children: [
-                                             Expanded(
-                                               child: Container(
-                                                 height: 1,
-                                                 color: Color.fromRGBO(0, 0, 0, 0.22),
-                                               ),
-                                             ),
-                                             SizedBox(width: relWidth(8)),
-                                             GestureDetector(
-                                               onTap: () {
-                                                 setState(() {
-                                                   repliesExpanded = !repliesExpanded;
-                                                 });
-                                               },
-                                               child: Row(
-                                                 mainAxisSize: MainAxisSize.min,
-                                                 children: [
-                                                   Text(
-                                                     'Hide Replies',
-                                                     style: TextStyle(
-                                                       color: Color.fromRGBO(0, 0, 0, 0.22),
-                                                       fontFamily: 'Roboto',
-                                                       fontSize: relWidth(11),
-                                                       fontStyle: FontStyle.normal,
-                                                       fontWeight: FontWeight.w400,
-                                                       height: 1.17182,
-                                                       letterSpacing: relWidth(0.22),
-                                                     ),
-                                                   ),
-                                                   SizedBox(width: relWidth(4)),
-                                                   Icon(
-                                                     Icons.keyboard_arrow_up,
-                                                     color: Color.fromRGBO(0, 0, 0, 0.22),
-                                                     size: relWidth(12),
-                                                   ),
-                                                 ],
-                                               ),
-                                             ),
-                                           ],
-                                         ),
-                                       ],
-                                     ],
+                           SizedBox(height: relHeight(12)),
+                           StreamBuilder<QuerySnapshot>(
+                             stream: FirebaseFirestore.instance
+                                 .collection('products')
+                                 .doc(widget.productId)
+                                 .collection('comments')
+                                 .orderBy('timestamp', descending: false)
+                                 .snapshots(),
+                             builder: (context, snapshot) {
+                               if (snapshot.connectionState == ConnectionState.waiting) {
+                                 return Center(child: CircularProgressIndicator());
+                               }
+                               if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                                 return Center(
+                                   child: Text(
+                                     '--- No Available Comments. ---',
+                                     style: TextStyle(
+                                       fontFamily: 'RobotoCondensed',
+                                       fontSize: relWidth(20),
+                                       fontWeight: FontWeight.w500,
+                                       color: const Color(0x88888888),
+                                     ),
+                                     textAlign: TextAlign.center,
                                    ),
-                                 ),
-                               ],
-                             ),
-                           ),
-                           SizedBox(height: relHeight(20)),
-                                                       // Second Comment
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: relWidth(18)),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Padding(
-                                    padding: EdgeInsets.only(top: relHeight(5)),
-                                    child: Image.asset(
-                                      'assets/images/UserCircle.png',
-                                      width: relWidth(39),
-                                      height: relHeight(39),
-                                    ),
-                                  ),
-                                 SizedBox(width: relWidth(10)),
-                                 Expanded(
-                                   child: Column(
-                                     crossAxisAlignment: CrossAxisAlignment.start,
-                                     children: [
-                                       Container(
-                                         width: relWidth(150),
-                                         height: relHeight(22),
-                                         child: Text(
-                                           'Donald Trump',
-                                           style: TextStyle(
-                                             color: Color(0xFF611A04).withOpacity(0.50),
-                                             fontFamily: 'Roboto',
-                                             fontSize: relWidth(20),
-                                             fontStyle: FontStyle.italic,
-                                             fontWeight: FontWeight.w400,
-                                             height: 1.17182,
-                                             letterSpacing: relWidth(0.4),
-                                           ),
-                                         ),
-                                       ),
-                                       SizedBox(height: relHeight(4)),
-                                       Container(
-                                         width: relWidth(293),
-                                         child: Text(
-                                           'Which method of payment do you prefer?',
-                                           style: TextStyle(
-                                             color: Color(0xFF611A04),
-                                             fontFamily: 'Roboto',
-                                             fontSize: relWidth(15),
-                                             fontStyle: FontStyle.normal,
-                                             fontWeight: FontWeight.w400,
-                                             height: 1.17182,
-                                             letterSpacing: relWidth(0.3),
-                                           ),
-                                         ),
-                                       ),
-                                       SizedBox(height: relHeight(8)),
-                                       Align(
-                                         alignment: Alignment.centerRight,
-                                         child: GestureDetector(
-                                           onTap: () {
-                                             final replyController = TextEditingController();
-                                             showDialog(
-                                               context: context,
-                                               barrierDismissible: true,
-                                               builder: (context) => Center(
-                                                 child: SingleChildScrollView(
-                                                   child: AlertDialog(
-                                                     backgroundColor: const Color(0xFFF3F2F2),
-                                                     shape: RoundedRectangleBorder(
-                                                       borderRadius: BorderRadius.circular(3),
-                                                       side: const BorderSide(
-                                                         color: Color.fromRGBO(0, 0, 0, 0.22),
-                                                         width: 1,
+                                 );
+                               }
+                               final comments = snapshot.data!.docs;
+                               final Map<String, bool> repliesExpandedMap = {};
+                               return Column(
+                                 children: comments.map((doc) {
+                                   final data = doc.data() as Map<String, dynamic>;
+                                   final String commenter = data['username'] ?? 'Unknown';
+                                   final String comment = data['comment'] ?? '';
+                                   final String commentId = doc.id;
+                                   return StatefulBuilder(
+                                     builder: (context, setCommentState) {
+                                       final showReplies = repliesExpandedMap[commentId] ?? false;
+                                       return Padding(
+                                         padding: EdgeInsets.symmetric(vertical: relHeight(10), horizontal: relWidth(18)),
+                                         child: Row(
+                                           crossAxisAlignment: CrossAxisAlignment.start,
+                                           children: [
+                                             Padding(
+                                               padding: EdgeInsets.only(top: relHeight(5)),
+                                               child: Image.asset(
+                                                 'assets/images/UserCircle.png',
+                                                 width: relWidth(39),
+                                                 height: relHeight(39),
+                                               ),
+                                             ),
+                                             SizedBox(width: relWidth(10)),
+                                             Expanded(
+                                               child: Column(
+                                                 crossAxisAlignment: CrossAxisAlignment.start,
+                                                 children: [
+                                                   Container(
+                                                     width: relWidth(150),
+                                                     height: relHeight(22),
+                                                     child: Text(
+                                                       commenter,
+                                                       style: TextStyle(
+                                                         color: Color(0xFF611A04).withOpacity(0.50),
+                                                         fontFamily: 'Roboto',
+                                                         fontSize: relWidth(20),
+                                                         fontStyle: FontStyle.italic,
+                                                         fontWeight: FontWeight.w400,
+                                                         height: 1.17182,
+                                                         letterSpacing: relWidth(0.4),
+                                                       ),
+                                                       overflow: TextOverflow.ellipsis,
+                                                     ),
+                                                   ),
+                                                   SizedBox(height: relHeight(4)),
+                                                   Container(
+                                                     width: relWidth(293),
+                                                     child: Text(
+                                                       comment,
+                                                       style: TextStyle(
+                                                         color: Color(0xFF611A04),
+                                                         fontFamily: 'Roboto',
+                                                         fontSize: relWidth(15),
+                                                         fontStyle: FontStyle.normal,
+                                                         fontWeight: FontWeight.w400,
+                                                         height: 1.17182,
+                                                         letterSpacing: relWidth(0.3),
                                                        ),
                                                      ),
-                                                     contentPadding: EdgeInsets.zero,
-                                                     content: Container(
-                                                       width: relWidth(312),
-                                                       padding: EdgeInsets.symmetric(horizontal: relWidth(10)),
-                                                       child: Column(
-                                                         mainAxisSize: MainAxisSize.min,
-                                                         crossAxisAlignment: CrossAxisAlignment.center,
+                                                   ),
+                                                   SizedBox(height: relHeight(8)),
+                                                   StreamBuilder<QuerySnapshot>(
+                                                     stream: doc.reference.collection('replies').orderBy('timestamp', descending: false).snapshots(),
+                                                     builder: (context, replySnapshot) {
+                                                       if (replySnapshot.connectionState == ConnectionState.waiting) {
+                                                         return SizedBox();
+                                                       }
+                                                       final replies = replySnapshot.data?.docs ?? [];
+                                                       final hasReplies = replies.isNotEmpty;
+                                                       
+                                                       return Column(
+                                                         crossAxisAlignment: CrossAxisAlignment.start,
                                                          children: [
-                                                           SizedBox(height: relHeight(15)),
-                                                           Text(
-                                                             'Post Reply',
-                                                             style: TextStyle(
-                                                               color: const Color(0xFF611A04),
-                                                               fontFamily: 'Roboto',
-                                                               fontSize: relWidth(16),
-                                                               fontWeight: FontWeight.w700,
-                                                               letterSpacing: 0.32,
-                                                             ),
-                                                             textAlign: TextAlign.center,
-                                                           ),
-                                                           SizedBox(height: relHeight(9)),
-                                                           Divider(
-                                                             color: const Color.fromRGBO(0, 0, 0, 0.22),
-                                                             thickness: 1,
-                                                           ),
-                                                           SizedBox(height: relHeight(15)),
-                                                           Container(
-                                                             width: relWidth(275),
-                                                             height: relHeight(145),
-                                                             decoration: BoxDecoration(
-                                                               color: Colors.white.withOpacity(0.8),
-                                                               borderRadius: BorderRadius.circular(3),
-                                                               border: Border.all(
-                                                                 color: const Color(0xFF611A04),
-                                                                 width: 1,
-                                                               ),
-                                                             ),
-                                                             child: Padding(
-                                                               padding: EdgeInsets.all(relWidth(12)),
-                                                               child: TextField(
-                                                                 controller: replyController,
-                                                                 maxLines: null,
-                                                                 expands: true,
-                                                                 decoration: const InputDecoration(
-                                                                   hintText: 'Post your reply here...',
-                                                                   border: InputBorder.none,
-                                                                 ),
-                                                                 style: TextStyle(
-                                                                   fontFamily: 'Roboto',
-                                                                   fontSize: relWidth(14),
-                                                                   color: const Color(0xFF611A04),
-                                                                 ),
-                                                               ),
-                                                             ),
-                                                           ),
-                                                           SizedBox(height: relHeight(15)),
-                                                           SizedBox(
-                                                             width: relWidth(275),
-                                                             height: relHeight(28),
-                                                             child: ElevatedButton(
-                                                               onPressed: () async {
-                                                                 final text = replyController.text.trim();
-                                                                 if (text.isNotEmpty) {
-                                                                   // TODO: Implement reply posting functionality
-                                                                   Navigator.of(context).pop();
-                                                                   ScaffoldMessenger.of(context).showSnackBar(
-                                                                     SnackBar(content: Text('Reply posted successfully!')),
-                                                                   );
-                                                                 }
+                                                           if (hasReplies) 
+                                                             GestureDetector(
+                                                               onTap: () {
+                                                                 setCommentState(() {
+                                                                   repliesExpandedMap[commentId] = !(repliesExpandedMap[commentId] ?? false);
+                                                                 });
                                                                },
-                                                               style: ElevatedButton.styleFrom(
-                                                                 backgroundColor: const Color(0xFF611A04),
-                                                                 shape: RoundedRectangleBorder(
-                                                                   borderRadius: BorderRadius.circular(3),
-                                                                 ),
+                                                               child: Row(
+                                                                 mainAxisSize: MainAxisSize.min,
+                                                                 children: [
+                                                                   Container(
+                                                                     width: relWidth(60),
+                                                                     height: 1,
+                                                                     color: Color(0xFF888888),
+                                                                   ),
+                                                                   SizedBox(width: relWidth(8)),
+                                                                   Text(
+                                                                     showReplies ? 'Hide Replies' : 'View Replies',
+                                                                     style: TextStyle(
+                                                                       color: Color(0xFF888888),
+                                                                       fontFamily: 'Roboto',
+                                                                       fontSize: relWidth(14),
+                                                                       fontWeight: FontWeight.w400,
+                                                                       fontStyle: FontStyle.italic,
+                                                                     ),
+                                                                   ),
+                                                                   SizedBox(width: relWidth(4)),
+                                                                   Icon(
+                                                                     showReplies ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                                                                     color: Color(0xFF888888),
+                                                                     size: relWidth(14),
+                                                                   ),
+                                                                 ],
                                                                ),
-                                                               child: Text(
-                                                                 'Reply',
-                                                                 style: TextStyle(
-                                                                   color: Colors.white,
-                                                                   fontFamily: 'Roboto',
-                                                                   fontSize: relWidth(14),
-                                                                   fontWeight: FontWeight.w600,
+                                                             ),
+                                                           if (hasReplies && showReplies) ...[
+                                                             ...replies.map((replyDoc) {
+                                                               final replyData = replyDoc.data() as Map<String, dynamic>;
+                                                               final String replyUser = replyData['username'] ?? 'Unknown';
+                                                               final String replyText = replyData['reply'] ?? '';
+                                                               return Padding(
+                                                                 padding: EdgeInsets.only(left: relWidth(42), top: relHeight(8)),
+                                                                 child: Row(
+                                                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                                                   children: [
+                                                                     Image.asset(
+                                                                       'assets/images/UserCircle.png',
+                                                                       width: relWidth(39),
+                                                                       height: relHeight(39),
+                                                                     ),
+                                                                     SizedBox(width: relWidth(10)),
+                                                                     Expanded(
+                                                                       child: Column(
+                                                                         crossAxisAlignment: CrossAxisAlignment.start,
+                                                                         children: [
+                                                                           Container(
+                                                                             width: relWidth(150),
+                                                                             height: relHeight(22),
+                                                                             child: Text(
+                                                                               replyUser,
+                                                                               style: TextStyle(
+                                                                                 color: Color(0xFF611A04).withOpacity(0.50),
+                                                                                 fontFamily: 'Roboto',
+                                                                                 fontSize: relWidth(20),
+                                                                                 fontStyle: FontStyle.italic,
+                                                                                 fontWeight: FontWeight.w400,
+                                                                                 height: 1.17182,
+                                                                                 letterSpacing: relWidth(0.4),
+                                                                               ),
+                                                                               overflow: TextOverflow.ellipsis,
+                                                                             ),
+                                                                           ),
+                                                                           SizedBox(height: relHeight(4)),
+                                                                           Container(
+                                                                             width: relWidth(293),
+                                                                             child: Text(
+                                                                               replyText,
+                                                                               style: TextStyle(
+                                                                                 color: Color(0xFF611A04),
+                                                                                 fontFamily: 'Roboto',
+                                                                                 fontSize: relWidth(15),
+                                                                                 fontStyle: FontStyle.normal,
+                                                                                 fontWeight: FontWeight.w400,
+                                                                                 height: 1.17182,
+                                                                                 letterSpacing: relWidth(0.3),
+                                                                               ),
+                                                                             ),
+                                                                           ),
+                                                                         ],
+                                                                       ),
+                                                                     ),
+                                                                   ],
                                                                  ),
+                                                               );
+                                                             }),
+                                                             SizedBox(height: relHeight(8)),
+                                                           ],
+                                                           Align(
+                                                             alignment: Alignment.centerRight,
+                                                             child: GestureDetector(
+                                                               onTap: () {
+                                                                 final replyController = TextEditingController();
+                                                                 showDialog(
+                                                                   context: context,
+                                                                   barrierDismissible: true,
+                                                                   builder: (context) => Center(
+                                                                     child: SingleChildScrollView(
+                                                                       child: AlertDialog(
+                                                                         backgroundColor: const Color(0xFFF3F2F2),
+                                                                         shape: RoundedRectangleBorder(
+                                                                           borderRadius: BorderRadius.circular(3),
+                                                                           side: const BorderSide(
+                                                                             color: Color.fromRGBO(0, 0, 0, 0.22),
+                                                                             width: 1,
+                                                                           ),
+                                                                         ),
+                                                                         contentPadding: EdgeInsets.zero,
+                                                                         content: Container(
+                                                                           width: relWidth(312),
+                                                                           padding: EdgeInsets.symmetric(horizontal: relWidth(10)),
+                                                                           child: Column(
+                                                                             mainAxisSize: MainAxisSize.min,
+                                                                             crossAxisAlignment: CrossAxisAlignment.center,
+                                                                             children: [
+                                                                               SizedBox(height: relHeight(15)),
+                                                                               Text(
+                                                                                 'Post Reply',
+                                                                                 style: TextStyle(
+                                                                                   color: const Color(0xFF611A04),
+                                                                                   fontFamily: 'Roboto',
+                                                                                   fontSize: relWidth(16),
+                                                                                   fontWeight: FontWeight.w700,
+                                                                                   letterSpacing: 0.32,
+                                                                                 ),
+                                                                                 textAlign: TextAlign.center,
+                                                                               ),
+                                                                               SizedBox(height: relHeight(9)),
+                                                                               Divider(
+                                                                                 color: const Color.fromRGBO(0, 0, 0, 0.22),
+                                                                                 thickness: 1,
+                                                                               ),
+                                                                               SizedBox(height: relHeight(15)),
+                                                                               Container(
+                                                                                 width: relWidth(275),
+                                                                                 height: relHeight(145),
+                                                                                 decoration: BoxDecoration(
+                                                                                   color: Colors.white.withOpacity(0.8),
+                                                                                   borderRadius: BorderRadius.circular(3),
+                                                                                   border: Border.all(
+                                                                                     color: const Color(0xFF611A04),
+                                                                                     width: 1,
+                                                                                   ),
+                                                                                 ),
+                                                                                 child: Padding(
+                                                                                   padding: EdgeInsets.all(relWidth(12)),
+                                                                                   child: TextField(
+                                                                                     controller: replyController,
+                                                                                     maxLines: null,
+                                                                                     expands: true,
+                                                                                     decoration: const InputDecoration(
+                                                                                       hintText: 'Post your reply here...',
+                                                                                       border: InputBorder.none,
+                                                                                     ),
+                                                                                     style: TextStyle(
+                                                                                       fontFamily: 'Roboto',
+                                                                                       fontSize: relWidth(14),
+                                                                                       color: const Color(0xFF611A04),
+                                                                                     ),
+                                                                                   ),
+                                                                                 ),
+                                                                               ),
+                                                                               SizedBox(height: relHeight(15)),
+                                                                               SizedBox(
+                                                                                 width: relWidth(275),
+                                                                                 height: relHeight(28),
+                                                                                 child: ElevatedButton(
+                                                                                   onPressed: () async {
+                                                                                     final text = replyController.text.trim();
+                                                                                     if (text.isNotEmpty) {
+                                                                                       final user = FirebaseAuth.instance.currentUser;
+                                                                                       String username = 'Unknown';
+                                                                                       if (user != null) {
+                                                                                         final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+                                                                                         username = userDoc.data()?['username'] ?? user.email ?? 'Unknown';
+                                                                                       }
+                                                                                       await doc.reference.collection('replies').add({
+                                                                                         'username': username,
+                                                                                         'reply': text,
+                                                                                         'timestamp': FieldValue.serverTimestamp(),
+                                                                                       });
+                                                                                       Navigator.of(context).pop();
+                                                                                       ScaffoldMessenger.of(context).showSnackBar(
+                                                                                         SnackBar(content: Text('Reply posted successfully!')),
+                                                                                       );
+                                                                                     }
+                                                                                   },
+                                                                                   style: ElevatedButton.styleFrom(
+                                                                                     backgroundColor: const Color(0xFF611A04),
+                                                                                     shape: RoundedRectangleBorder(
+                                                                                       borderRadius: BorderRadius.circular(3),
+                                                                                     ),
+                                                                                   ),
+                                                                                   child: Text(
+                                                                                     'Reply',
+                                                                                     style: TextStyle(
+                                                                                       color: Colors.white,
+                                                                                       fontFamily: 'Roboto',
+                                                                                       fontSize: relWidth(14),
+                                                                                       fontWeight: FontWeight.w600,
+                                                                                     ),
+                                                                                   ),
+                                                                                 ),
+                                                                               ),
+                                                                               SizedBox(height: relHeight(15)),
+                                                                             ],
+                                                                           ),
+                                                                         ),
+                                                                       ),
+                                                                     ),
+                                                                   ),
+                                                                 );
+                                                               },
+                                                               child: Row(
+                                                                 mainAxisSize: MainAxisSize.min,
+                                                                 children: [
+                                                                   Text(
+                                                                     'Reply',
+                                                                     style: TextStyle(
+                                                                       color: Color(0xFF611A04),
+                                                                       fontFamily: 'Roboto',
+                                                                       fontSize: relWidth(14),
+                                                                       fontWeight: FontWeight.w400,
+                                                                     ),
+                                                                   ),
+                                                                   SizedBox(width: relWidth(4)),
+                                                                   Icon(
+                                                                     Icons.keyboard_arrow_right,
+                                                                     color: Color(0xFF611A04),
+                                                                     size: relWidth(16),
+                                                                   ),
+                                                                 ],
                                                                ),
                                                              ),
                                                            ),
-                                                           SizedBox(height: relHeight(15)),
                                                          ],
-                                                       ),
-                                                     ),
+                                                       );
+                                                     },
                                                    ),
-                                                 ),
+                                                   SizedBox(height: relHeight(12)),
+                                                 ],
                                                ),
-                                             );
-                                           },
-                                           child: Row(
-                                             mainAxisSize: MainAxisSize.min,
-                                             children: [
-                                               Text(
-                                                 'Reply',
-                                                 style: TextStyle(
-                                                   color: Color(0xFF611A04),
-                                                   fontFamily: 'Roboto',
-                                                   fontSize: relWidth(14),
-                                                   fontWeight: FontWeight.w400,
-                                                 ),
-                                               ),
-                                               SizedBox(width: relWidth(4)),
-                                               Icon(
-                                                 Icons.keyboard_arrow_right,
-                                                 color: Color(0xFF611A04),
-                                                 size: relWidth(16),
-                                               ),
-                                             ],
-                                           ),
+                                             ),
+                                           ],
                                          ),
-                                       ),
-                                     ],
-                                   ),
-                                 ),
-                               ],
-                             ),
+                                       );
+                                     },
+                                   );
+                                 }).toList(),
+                               );
+                             },
                            ),
-                         ],
-                       ),
-                     ),
-                   ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: relHeight(24)),
                 ],
               ),
             ),

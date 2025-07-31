@@ -388,7 +388,7 @@ class _UserProfileState extends State<UserProfile> {
                             shrinkWrap: true,
                             mainAxisSpacing: relHeight(12),
                             crossAxisSpacing: relWidth(10),
-                            childAspectRatio: 0.95,
+                            childAspectRatio: 1.0,
                             physics: NeverScrollableScrollPhysics(),
                             children: products.map((doc) {
                               final data = doc.data() as Map<String, dynamic>;
@@ -501,7 +501,7 @@ class _UserProfileState extends State<UserProfile> {
                                 shrinkWrap: true,
                                 mainAxisSpacing: relHeight(12),
                                 crossAxisSpacing: relWidth(10),
-                                childAspectRatio: 0.95,
+                                childAspectRatio: 0.97,
                                 physics: NeverScrollableScrollPhysics(),
                                 children: favProducts.map((doc) {
                                   final data = doc.data() as Map<String, dynamic>;

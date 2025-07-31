@@ -103,7 +103,7 @@ class CategoryProducts extends StatelessWidget {
                     shrinkWrap: true,
                     mainAxisSpacing: relHeight(20),
                     crossAxisSpacing: relWidth(10),
-                    childAspectRatio: 0.95,
+                    childAspectRatio: 1.05,
                     children: products.map((doc) {
                       final data = doc.data() as Map<String, dynamic>;
                       return ProductCard(
