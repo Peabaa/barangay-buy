@@ -392,19 +392,185 @@ class _UserProfileState extends State<UserProfile> {
                             physics: NeverScrollableScrollPhysics(),
                             children: products.map((doc) {
                               final data = doc.data() as Map<String, dynamic>;
-                              return Padding(
-                                padding: EdgeInsets.symmetric(horizontal: relWidth(2)),
-                                child: SizedBox(
-                                  height: relHeight(170),
-                                  child: ProductCard(
-                                    imageBase64: data['imageBase64'] ?? '',
-                                    name: data['productName'] ?? '',
-                                    price: data['price']?.toString() ?? '',
-                                    category: data['category'] ?? '',
-                                    sold: data['sold']?.toString() ?? '0',
-                                    productId: doc.id,
+                              return Stack(
+                                children: [
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: relWidth(2)),
+                                    child: SizedBox(
+                                      height: relHeight(180),
+                                      child: ProductCard(
+                                        imageBase64: data['imageBase64'] ?? '',
+                                        name: data['productName'] ?? '',
+                                        price: data['price']?.toString() ?? '',
+                                        category: data['category'] ?? '',
+                                        sold: data['sold']?.toString() ?? '0',
+                                        productId: doc.id,
+                                      ),
+                                    ),
                                   ),
-                                ),
+                                  Positioned(
+                                    top: 6,
+                                    right: 6,
+                                    child: GestureDetector(
+                                      onTap: () async {
+                                        final confirm = await showDialog<bool>(
+                                          context: context,
+                                          barrierDismissible: true,
+                                          builder: (context) => Center(
+                                            child: Material(
+                                              color: Colors.transparent,
+                                              child: Container(
+                                                width: relWidth(312),
+                                                height: relHeight(230),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFFF3F2F2),
+                                                  borderRadius: BorderRadius.circular(relWidth(3)),
+                                                  border: Border.all(
+                                                    color: const Color.fromRGBO(0, 0, 0, 0.22),
+                                                    width: 1,
+                                                  ),
+                                                ),
+                                                child: Column(
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                                  children: [
+                                                    Container(
+                                                      width: relWidth(215),
+                                                      height: relHeight(25),
+                                                      alignment: Alignment.center,
+                                                      margin: EdgeInsets.symmetric(vertical: relHeight(7)),
+                                                      child: Text(
+                                                        'Delete Listing',
+                                                        textAlign: TextAlign.center,
+                                                        style: TextStyle(
+                                                          color: const Color(0xFF611A04),
+                                                          fontFamily: 'Roboto',
+                                                          fontSize: relWidth(18),
+                                                          fontWeight: FontWeight.w700,
+                                                          fontStyle: FontStyle.normal,
+                                                          height: 1.17182,
+                                                          letterSpacing: 0.32,
+                                                          decoration: TextDecoration.none,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Divider(
+                                                      color: const Color.fromRGBO(0, 0, 0, 0.22),
+                                                      thickness: 1,
+                                                      height: relHeight(16),
+                                                    ),
+                                                    Container(
+                                                      width: relWidth(232),
+                                                      height: relHeight(81),
+                                                      alignment: Alignment.center,
+                                                      child: Text(
+                                                        'Do you want to delete this product listing?',
+                                                        textAlign: TextAlign.center,
+                                                        style: TextStyle(
+                                                          color: const Color(0xFF611A04),
+                                                          fontFamily: 'Roboto',
+                                                          fontSize: relWidth(20),
+                                                          fontWeight: FontWeight.w700,
+                                                          fontStyle: FontStyle.normal,
+                                                          height: 1.17182,
+                                                          letterSpacing: 0.4,
+                                                          decoration: TextDecoration.none,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    SizedBox(height: relHeight(15)),
+                                                    Row(
+                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      children: [
+                                                        GestureDetector(
+                                                          onTap: () {
+                                                            Navigator.of(context).pop(false);
+                                                          },
+                                                          child: Container(
+                                                            width: relWidth(90),
+                                                            height: relHeight(28),
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.grey[300],
+                                                              borderRadius: BorderRadius.circular(relWidth(3)),
+                                                              border: Border.all(
+                                                                color: const Color(0xFF611A04),
+                                                                width: 1,
+                                                              ),
+                                                            ),
+                                                            alignment: Alignment.center,
+                                                            child: Text(
+                                                              'Cancel',
+                                                              style: TextStyle(
+                                                                color: const Color(0xFF611A04),
+                                                                fontFamily: 'Roboto',
+                                                                fontWeight: FontWeight.w700,
+                                                                fontSize: relWidth(16),
+                                                                decoration: TextDecoration.none,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        SizedBox(width: relWidth(16)),
+                                                        GestureDetector(
+                                                          onTap: () {
+                                                            Navigator.of(context).pop(true);
+                                                          },
+                                                          child: Container(
+                                                            width: relWidth(90),
+                                                            height: relHeight(28),
+                                                            decoration: BoxDecoration(
+                                                              color: Colors.red.withOpacity(0.8),
+                                                              borderRadius: BorderRadius.circular(relWidth(3)),
+                                                              border: Border.all(
+                                                                color: Colors.red,
+                                                                width: 1,
+                                                              ),
+                                                            ),
+                                                            alignment: Alignment.center,
+                                                            child: Text(
+                                                              'Delete',
+                                                              style: TextStyle(
+                                                                color: Colors.white,
+                                                                fontFamily: 'Roboto',
+                                                                fontWeight: FontWeight.w700,
+                                                                fontSize: relWidth(16),
+                                                                decoration: TextDecoration.none,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                        if (confirm == true) {
+                                          await FirebaseFirestore.instance.collection('products').doc(doc.id).delete();
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('Product deleted successfully!')),
+                                          );
+                                        }
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          shape: BoxShape.circle,
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.1),
+                                              blurRadius: 2,
+                                            ),
+                                          ],
+                                        ),
+                                        padding: EdgeInsets.all(6),
+                                        child: Icon(Icons.delete, color: Colors.red, size: 22),
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               );
                             }).toList(),
                           );
