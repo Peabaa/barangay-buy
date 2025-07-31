@@ -571,7 +571,9 @@ class _ProductDescriptionState extends State<ProductDescription> {
                                                      if (text.isNotEmpty) {
                                                        final user = FirebaseAuth.instance.currentUser;
                                                        String username = 'Unknown';
+                                                       String commenterId = '';
                                                        if (user != null) {
+                                                         commenterId = user.uid;
                                                          final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
                                                          username = userDoc.data()?['username'] ?? user.email ?? 'Unknown';
                                                        }
@@ -582,6 +584,7 @@ class _ProductDescriptionState extends State<ProductDescription> {
                                                          .add({
                                                            'username': username,
                                                            'comment': text,
+                                                           'commenterId': commenterId,
                                                            'timestamp': FieldValue.serverTimestamp(),
                                                          });
                                                        Navigator.of(context).pop();
@@ -685,6 +688,8 @@ class _ProductDescriptionState extends State<ProductDescription> {
                                    return StatefulBuilder(
                                      builder: (context, setCommentState) {
                                        final showReplies = repliesExpandedMap[commentId] ?? false;
+                                       final currentUser = FirebaseAuth.instance.currentUser;
+                                       final isOwnComment = currentUser != null && data['commenterId'] == currentUser.uid;
                                        return Padding(
                                          padding: EdgeInsets.symmetric(vertical: relHeight(10), horizontal: relWidth(18)),
                                          child: Row(
@@ -703,22 +708,181 @@ class _ProductDescriptionState extends State<ProductDescription> {
                                                child: Column(
                                                  crossAxisAlignment: CrossAxisAlignment.start,
                                                  children: [
-                                                   Container(
-                                                     width: relWidth(150),
-                                                     height: relHeight(22),
-                                                     child: Text(
-                                                       commenter,
-                                                       style: TextStyle(
-                                                         color: Color(0xFF611A04).withOpacity(0.50),
-                                                         fontFamily: 'Roboto',
-                                                         fontSize: relWidth(20),
-                                                         fontStyle: FontStyle.italic,
-                                                         fontWeight: FontWeight.w400,
-                                                         height: 1.17182,
-                                                         letterSpacing: relWidth(0.4),
+                                                   Row(
+                                                     children: [
+                                                       Expanded(
+                                                         child: Container(
+                                                           width: relWidth(150),
+                                                           height: relHeight(22),
+                                                           child: Text(
+                                                             commenter,
+                                                             style: TextStyle(
+                                                               color: Color(0xFF611A04).withOpacity(0.50),
+                                                               fontFamily: 'Roboto',
+                                                               fontSize: relWidth(20),
+                                                               fontStyle: FontStyle.italic,
+                                                               fontWeight: FontWeight.w400,
+                                                               height: 1.17182,
+                                                               letterSpacing: relWidth(0.4),
+                                                             ),
+                                                             overflow: TextOverflow.ellipsis,
+                                                           ),
+                                                         ),
                                                        ),
-                                                       overflow: TextOverflow.ellipsis,
-                                                     ),
+                                                       if (isOwnComment)
+                                                         GestureDetector(
+                                                           onTap: () async {
+                                                             final confirm = await showDialog<bool>(
+                                                               context: context,
+                                                               barrierDismissible: true,
+                                                               builder: (context) => Center(
+                                                                 child: Material(
+                                                                   color: Colors.transparent,
+                                                                   child: Container(
+                                                                     width: relWidth(312),
+                                                                     height: relHeight(230),
+                                                                     decoration: BoxDecoration(
+                                                                       color: const Color(0xFFF3F2F2),
+                                                                       borderRadius: BorderRadius.circular(relWidth(3)),
+                                                                       border: Border.all(
+                                                                         color: const Color.fromRGBO(0, 0, 0, 0.22),
+                                                                         width: 1,
+                                                                       ),
+                                                                     ),
+                                                                     child: Column(
+                                                                       mainAxisAlignment: MainAxisAlignment.center,
+                                                                       crossAxisAlignment: CrossAxisAlignment.center,
+                                                                       children: [
+                                                                         Container(
+                                                                           width: relWidth(215),
+                                                                           height: relHeight(25),
+                                                                           alignment: Alignment.center,
+                                                                           margin: EdgeInsets.symmetric(vertical: relHeight(7)),
+                                                                           child: Text(
+                                                                             'Delete Comment',
+                                                                             textAlign: TextAlign.center,
+                                                                             style: TextStyle(
+                                                                               color: const Color(0xFF611A04),
+                                                                               fontFamily: 'Roboto',
+                                                                               fontSize: relWidth(18),
+                                                                               fontWeight: FontWeight.w700,
+                                                                               fontStyle: FontStyle.normal,
+                                                                               height: 1.17182,
+                                                                               letterSpacing: 0.32,
+                                                                               decoration: TextDecoration.none,
+                                                                             ),
+                                                                           ),
+                                                                         ),
+                                                                         Divider(
+                                                                           thickness: 1,
+                                                                           height: relHeight(16),
+                                                                         ),
+                                                                         Container(
+                                                                           width: relWidth(232),
+                                                                           height: relHeight(81),
+                                                                           alignment: Alignment.center,
+                                                                           child: Text(
+                                                                             'Do you want to delete this comment?',
+                                                                             textAlign: TextAlign.center,
+                                                                             style: TextStyle(
+                                                                               color: const Color(0xFF611A04),
+                                                                               fontFamily: 'Roboto',
+                                                                               fontSize: relWidth(20),
+                                                                               fontWeight: FontWeight.w700,
+                                                                               fontStyle: FontStyle.normal,
+                                                                               height: 1.17182,
+                                                                               letterSpacing: 0.4,
+                                                                               decoration: TextDecoration.none,
+                                                                             ),
+                                                                           ),
+                                                                         ),
+                                                                         SizedBox(height: relHeight(15)),
+                                                                         Row(
+                                                                           mainAxisAlignment: MainAxisAlignment.center,
+                                                                           children: [
+                                                                             GestureDetector(
+                                                                               onTap: () {
+                                                                                 Navigator.of(context).pop(false);
+                                                                               },
+                                                                               child: Container(
+                                                                                 width: relWidth(90),
+                                                                                 height: relHeight(28),
+                                                                                 decoration: BoxDecoration(
+                                                                                   color: Colors.grey[300],
+                                                                                   borderRadius: BorderRadius.circular(relWidth(3)),
+                                                                                   border: Border.all(
+                                                                                     color: const Color(0xFF611A04),
+                                                                                     width: 1,
+                                                                                   ),
+                                                                                 ),
+                                                                                 alignment: Alignment.center,
+                                                                                 child: Text(
+                                                                                   'Cancel',
+                                                                                   style: TextStyle(
+                                                                                     color: const Color(0xFF611A04),
+                                                                                     fontFamily: 'Roboto',
+                                                                                     fontWeight: FontWeight.w700,
+                                                                                     fontSize: relWidth(16),
+                                                                                     decoration: TextDecoration.none,
+                                                                                   ),
+                                                                                 ),
+                                                                               ),
+                                                                             ),
+                                                                             SizedBox(width: relWidth(16)),
+                                                                             GestureDetector(
+                                                                               onTap: () {
+                                                                                 Navigator.of(context).pop(true);
+                                                                               },
+                                                                               child: Container(
+                                                                                 width: relWidth(90),
+                                                                                 height: relHeight(28),
+                                                                                 decoration: BoxDecoration(
+                                                                                   color: Colors.red.withOpacity(0.8),
+                                                                                   borderRadius: BorderRadius.circular(relWidth(3)),
+                                                                                   border: Border.all(
+                                                                                     color: Colors.red,
+                                                                                     width: 1,
+                                                                                   ),
+                                                                                 ),
+                                                                                 alignment: Alignment.center,
+                                                                                 child: Text(
+                                                                                   'Delete',
+                                                                                   style: TextStyle(
+                                                                                     color: Colors.white,
+                                                                                     fontFamily: 'Roboto',
+                                                                                     fontWeight: FontWeight.w700,
+                                                                                     fontSize: relWidth(16),
+                                                                                     decoration: TextDecoration.none,
+                                                                                   ),
+                                                                                 ),
+                                                                               ),
+                                                                             ),
+                                                                           ],
+                                                                         ),
+                                                                       ],
+                                                                     ),
+                                                                   ),
+                                                                 ),
+                                                                ),
+                                                               );
+                                                             if (confirm == true) {
+                                                               await FirebaseFirestore.instance
+                                                                 .collection('products')
+                                                                 .doc(widget.productId)
+                                                                 .collection('comments')
+                                                                 .doc(doc.id)
+                                                                 .delete();
+                                                               ScaffoldMessenger.of(context).showSnackBar(
+                                                                 SnackBar(content: Text('Comment deleted successfully!')),
+                                                               );
+                                                             }
+                                                           },
+                                                           child: Padding(
+                                                             padding: EdgeInsets.only(left: relWidth(8)),
+                                                             child: Icon(Icons.delete, color: Colors.red, size: 20),
+                                                           ),
+                                                         ),
+                                                     ],
                                                    ),
                                                    SizedBox(height: relHeight(4)),
                                                    Container(
@@ -789,6 +953,9 @@ class _ProductDescriptionState extends State<ProductDescription> {
                                                                final replyData = replyDoc.data() as Map<String, dynamic>;
                                                                final String replyUser = replyData['username'] ?? 'Unknown';
                                                                final String replyText = replyData['reply'] ?? '';
+                                                               final String replyId = replyDoc.id;
+                                                               final currentUser = FirebaseAuth.instance.currentUser;
+                                                               final isOwnReply = currentUser != null && replyData['commenterId'] == currentUser.uid;
                                                                return Padding(
                                                                  padding: EdgeInsets.only(left: relWidth(42), top: relHeight(8)),
                                                                  child: Row(
@@ -804,22 +971,176 @@ class _ProductDescriptionState extends State<ProductDescription> {
                                                                        child: Column(
                                                                          crossAxisAlignment: CrossAxisAlignment.start,
                                                                          children: [
-                                                                           Container(
-                                                                             width: relWidth(150),
-                                                                             height: relHeight(22),
-                                                                             child: Text(
-                                                                               replyUser,
-                                                                               style: TextStyle(
-                                                                                 color: Color(0xFF611A04).withOpacity(0.50),
-                                                                                 fontFamily: 'Roboto',
-                                                                                 fontSize: relWidth(20),
-                                                                                 fontStyle: FontStyle.italic,
-                                                                                 fontWeight: FontWeight.w400,
-                                                                                 height: 1.17182,
-                                                                                 letterSpacing: relWidth(0.4),
+                                                                           Row(
+                                                                             children: [
+                                                                               Expanded(
+                                                                                 child: Container(
+                                                                                   width: relWidth(150),
+                                                                                   height: relHeight(22),
+                                                                                   child: Text(
+                                                                                     replyUser,
+                                                                                     style: TextStyle(
+                                                                                       color: Color(0xFF611A04).withOpacity(0.50),
+                                                                                       fontFamily: 'Roboto',
+                                                                                       fontSize: relWidth(20),
+                                                                                       fontStyle: FontStyle.italic,
+                                                                                       fontWeight: FontWeight.w400,
+                                                                                       height: 1.17182,
+                                                                                       letterSpacing: relWidth(0.4),
+                                                                                     ),
+                                                                                     overflow: TextOverflow.ellipsis,
+                                                                                   ),
+                                                                                 ),
                                                                                ),
-                                                                               overflow: TextOverflow.ellipsis,
-                                                                             ),
+                                                                               if (isOwnReply)
+                                                                                 GestureDetector(
+                                                                                   onTap: () async {
+                                                                                     final confirm = await showDialog<bool>(
+                                                                                       context: context,
+                                                                                       barrierDismissible: true,
+                                                                                       builder: (context) => Center(
+                                                                                         child: Material(
+                                                                                           color: Colors.transparent,
+                                                                                           child: Container(
+                                                                                             width: relWidth(312),
+                                                                                             height: relHeight(230),
+                                                                                             decoration: BoxDecoration(
+                                                                                               color: const Color(0xFFF3F2F2),
+                                                                                               borderRadius: BorderRadius.circular(relWidth(3)),
+                                                                                               border: Border.all(
+                                                                                                 color: const Color.fromRGBO(0, 0, 0, 0.22),
+                                                                                                 width: 1,
+                                                                                               ),
+                                                                                             ),
+                                                                                             child: Column(
+                                                                                               mainAxisAlignment: MainAxisAlignment.center,
+                                                                                               crossAxisAlignment: CrossAxisAlignment.center,
+                                                                                               children: [
+                                                                                                 Container(
+                                                                                                   width: relWidth(215),
+                                                                                                   height: relHeight(25),
+                                                                                                   alignment: Alignment.center,
+                                                                                                   margin: EdgeInsets.symmetric(vertical: relHeight(7)),
+                                                                                                   child: Text(
+                                                                                                     'Delete Reply',
+                                                                                                     textAlign: TextAlign.center,
+                                                                                                     style: TextStyle(
+                                                                                                       color: const Color(0xFF611A04),
+                                                                                                       fontFamily: 'Roboto',
+                                                                                                       fontSize: relWidth(18),
+                                                                                                       fontWeight: FontWeight.w700,
+                                                                                                       fontStyle: FontStyle.normal,
+                                                                                                       height: 1.17182,
+                                                                                                       letterSpacing: 0.32,
+                                                                                                       decoration: TextDecoration.none,
+                                                                                                     ),
+                                                                                                   ),
+                                                                                                 ),
+                                                                                                 Divider(
+                                                                                                   thickness: 1,
+                                                                                                   height: relHeight(16),
+                                                                                                 ),
+                                                                                                 Container(
+                                                                                                   width: relWidth(232),
+                                                                                                   height: relHeight(81),
+                                                                                                   alignment: Alignment.center,
+                                                                                                   child: Text(
+                                                                                                     'Do you want to delete this reply?',
+                                                                                                     textAlign: TextAlign.center,
+                                                                                                     style: TextStyle(
+                                                                                                       color: const Color(0xFF611A04),
+                                                                                                       fontFamily: 'Roboto',
+                                                                                                       fontSize: relWidth(20),
+                                                                                                       fontWeight: FontWeight.w700,
+                                                                                                       fontStyle: FontStyle.normal,
+                                                                                                       height: 1.17182,
+                                                                                                       letterSpacing: 0.4,
+                                                                                                       decoration: TextDecoration.none,
+                                                                                                     ),
+                                                                                                   ),
+                                                                                                 ),
+                                                                                                 SizedBox(height: relHeight(15)),
+                                                                                                 Row(
+                                                                                                   mainAxisAlignment: MainAxisAlignment.center,
+                                                                                                   children: [
+                                                                                                     GestureDetector(
+                                                                                                       onTap: () {
+                                                                                                         Navigator.of(context).pop(false);
+                                                                                                       },
+                                                                                                       child: Container(
+                                                                                                         width: relWidth(90),
+                                                                                                         height: relHeight(28),
+                                                                                                         decoration: BoxDecoration(
+                                                                                                           color: Colors.grey[300],
+                                                                                                           borderRadius: BorderRadius.circular(relWidth(3)),
+                                                                                                           border: Border.all(
+                                                                                                             color: const Color(0xFF611A04),
+                                                                                                             width: 1,
+                                                                                                           ),
+                                                                                                         ),
+                                                                                                         alignment: Alignment.center,
+                                                                                                         child: Text(
+                                                                                                           'Cancel',
+                                                                                                           style: TextStyle(
+                                                                                                             color: const Color(0xFF611A04),
+                                                                                                             fontFamily: 'Roboto',
+                                                                                                             fontWeight: FontWeight.w700,
+                                                                                                             fontSize: relWidth(16),
+                                                                                                             decoration: TextDecoration.none,
+                                                                                                           ),
+                                                                                                         ),
+                                                                                                       ),
+                                                                                                     ),
+                                                                                                     SizedBox(width: relWidth(16)),
+                                                                                                     GestureDetector(
+                                                                                                       onTap: () {
+                                                                                                         Navigator.of(context).pop(true);
+                                                                                                       },
+                                                                                                       child: Container(
+                                                                                                         width: relWidth(90),
+                                                                                                         height: relHeight(28),
+                                                                                                         decoration: BoxDecoration(
+                                                                                                           color: Colors.red.withOpacity(0.8),
+                                                                                                           borderRadius: BorderRadius.circular(relWidth(3)),
+                                                                                                           border: Border.all(
+                                                                                                             color: Colors.red,
+                                                                                                             width: 1,
+                                                                                                           ),
+                                                                                                         ),
+                                                                                                         alignment: Alignment.center,
+                                                                                                         child: Text(
+                                                                                                           'Delete',
+                                                                                                           style: TextStyle(
+                                                                                                             color: Colors.white,
+                                                                                                             fontFamily: 'Roboto',
+                                                                                                             fontWeight: FontWeight.w700,
+                                                                                                             fontSize: relWidth(16),
+                                                                                                             decoration: TextDecoration.none,
+                                                                                                           ),
+                                                                                                         ),
+                                                                                                       ),
+                                                                                                     ),
+                                                                                                   ],
+                                                                                                 ),
+                                                                                               ],
+                                                                                             ),
+                                                                                           ),
+                                                                                         ),
+                                                                                        ),
+                                                                                       );
+                                                                                     if (confirm == true) {
+                                                                                       await doc.reference.collection('replies').doc(replyId).delete();
+                                                                                       ScaffoldMessenger.of(context).showSnackBar(
+                                                                                         SnackBar(content: Text('Reply deleted successfully!')),
+                                                                                       );
+                                                                                     }
+                                                                                   },
+                                                                                   child: Padding(
+                                                                                     padding: EdgeInsets.only(left: relWidth(8)),
+                                                                                     child: Icon(Icons.delete, color: Colors.red, size: 20),
+                                                                                   ),
+                                                                                 ),
+                                                                             ],
                                                                            ),
                                                                            SizedBox(height: relHeight(4)),
                                                                            Container(
@@ -930,13 +1251,16 @@ class _ProductDescriptionState extends State<ProductDescription> {
                                                                                      if (text.isNotEmpty) {
                                                                                        final user = FirebaseAuth.instance.currentUser;
                                                                                        String username = 'Unknown';
+                                                                                       String commenterId = '';
                                                                                        if (user != null) {
+                                                                                         commenterId = user.uid;
                                                                                          final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
                                                                                          username = userDoc.data()?['username'] ?? user.email ?? 'Unknown';
                                                                                        }
                                                                                        await doc.reference.collection('replies').add({
                                                                                          'username': username,
                                                                                          'reply': text,
+                                                                                         'commenterId': commenterId,
                                                                                          'timestamp': FieldValue.serverTimestamp(),
                                                                                        });
                                                                                        Navigator.of(context).pop();
