@@ -19,6 +19,14 @@ class UserSell extends StatefulWidget {
 }
 
 class _UserSellState extends State<UserSell> {
+  bool get _isFormComplete {
+    return _productNameController.text.trim().isNotEmpty &&
+        _priceController.text.trim().isNotEmpty &&
+        double.tryParse(_priceController.text.trim()) != null &&
+        double.parse(_priceController.text.trim()) > 0 &&
+        selectedCategory != null &&
+        _descriptionController.text.trim().isNotEmpty;
+  }
   String selectedBarangay = '';
   String? selectedCategory;
   File? _productImage;
@@ -161,12 +169,10 @@ class _UserSellState extends State<UserSell> {
           .collection('products')
           .add(productData);
 
-      // Also add to a global products collection for easier searching
       final globalProductRef = await FirebaseFirestore.instance
           .collection('products')
           .add(productData);
 
-      // Update both documents to include their Firestore document ID as productId
       await userProductRef.update({'productId': globalProductRef.id});
       await globalProductRef.update({'productId': globalProductRef.id});
 
@@ -533,9 +539,9 @@ class _UserSellState extends State<UserSell> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         GestureDetector(
-                          onTap: _isSubmitting ? null : _submitProduct,
+                          onTap: (_isSubmitting || !_isFormComplete) ? null : _submitProduct,
                           child: Opacity(
-                            opacity: _isSubmitting ? 0.5 : 1.0,
+                            opacity: (_isSubmitting || !_isFormComplete) ? 0.5 : 1.0,
                             child: Stack(
                               alignment: Alignment.center,
                               children: [
