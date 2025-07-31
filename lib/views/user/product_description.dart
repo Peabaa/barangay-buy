@@ -32,6 +32,7 @@ class ProductDescription extends StatefulWidget {
 }
 
 class _ProductDescriptionState extends State<ProductDescription> {
+  bool _descExpanded = false;
   String selectedBarangay = '';
   bool isFavorite = false;
   String? userId;
@@ -146,6 +147,13 @@ class _ProductDescriptionState extends State<ProductDescription> {
                     selectedBarangay: selectedBarangay,
                     onNotificationTap: () {},
                   ),
+                  Positioned(
+                    left: 0,
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -172,7 +180,7 @@ class _ProductDescriptionState extends State<ProductDescription> {
                                 child: Icon(Icons.image, size: 80, color: Colors.grey),
                               ),
                       ),
-                                             // Favorite Heart Icon
+                      // Favorite Heart Icon
                        Positioned(
                          bottom: relHeight(20),
                          right: relWidth(20),
@@ -191,7 +199,6 @@ class _ProductDescriptionState extends State<ProductDescription> {
                   Center(
                     child: Container(
                       width: relWidth(383),
-                      height: relHeight(115),
                       decoration: BoxDecoration(
                         color: Colors.grey[300], 
                         borderRadius: BorderRadius.circular(3),
@@ -203,21 +210,25 @@ class _ProductDescriptionState extends State<ProductDescription> {
                       child: Stack(
                         children: [
                           Padding(
-                            padding: EdgeInsets.only(top: relHeight(7), left: relWidth(15)),
+                            padding: EdgeInsets.only(top: relHeight(7), left: relWidth(15), bottom: relHeight(7)),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  widget.name,
-                                  textAlign: TextAlign.left,
-                                  style: TextStyle(
-                                    color: Color(0xFF611A04),
-                                    fontFamily: 'Roboto',
-                                    fontSize: relWidth(22),
-                                    fontStyle: FontStyle.normal,
-                                    fontWeight: FontWeight.w600,
-                                    height: 1.17182, 
-                                    letterSpacing: relWidth(0.44),
+                                Container(
+                                  width: relWidth(230), // Adjust this value as needed
+                                  child: Text(
+                                    widget.name,
+                                    textAlign: TextAlign.left,
+                                    style: TextStyle(
+                                      color: Color(0xFF611A04),
+                                      fontFamily: 'Roboto',
+                                      fontSize: relWidth(22),
+                                      fontStyle: FontStyle.normal,
+                                      fontWeight: FontWeight.w600,
+                                      height: 1.17182, 
+                                      letterSpacing: relWidth(0.44),
+                                    ),
+                                    softWrap: true,
                                   ),
                                 ),
                                 SizedBox(height: relHeight(3)),
@@ -293,30 +304,6 @@ class _ProductDescriptionState extends State<ProductDescription> {
                               ),
                             ),
                           ),
-                          // Sold count 
-                          Positioned(
-                            top: relHeight(33), 
-                            right: relWidth(8),
-                            child: Container(
-                              width: relWidth(76),
-                              height: relHeight(26),
-                              child: Center(
-                                child: Text(
-                                  '${widget.sold} sold',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: Color(0xFF888888),
-                                    fontFamily: 'Roboto',
-                                    fontSize: relWidth(16),
-                                    fontStyle: FontStyle.normal,
-                                    fontWeight: FontWeight.w500,
-                                    height: 1.17182,
-                                    letterSpacing: relWidth(0.32),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ),
@@ -331,67 +318,131 @@ class _ProductDescriptionState extends State<ProductDescription> {
                   ),
                   SizedBox(height: relHeight(12)),
                   Center(
-                    child: Container(
-                      width: relWidth(383),
-                      height: relHeight(131),
-                      decoration: BoxDecoration(
-                        color: Color(0xFFF3F2F2),
-                        borderRadius: BorderRadius.circular(3),
-                        border: Border.all(
-                          color: Color.fromRGBO(0, 0, 0, 0.22),
-                          width: 1,
-                        ),
-                      ),
-                                             child: Column(
-                         crossAxisAlignment: CrossAxisAlignment.start,
-                         children: [
-                           Padding(
-                             padding: EdgeInsets.only(
-                               top: relHeight(7),
-                               left: relWidth(19),
-                             ),
-                             child: Text(
-                               'Description',
-                               style: TextStyle(
-                                 color: Color(0xFF611A04),
-                                 fontFamily: 'Roboto',
-                                 fontSize: relWidth(22),
-                                 fontStyle: FontStyle.italic,
-                                 fontWeight: FontWeight.w600,
-                                 height: 1.17182,
-                                 letterSpacing: relWidth(0.44),
-                               ),
-                             ),
-                           ),
-                           SizedBox(height: relHeight(3)),
-                                                       Container(
-                              width: relWidth(381),
-                              height: 1,
+                    child: StatefulBuilder(
+                      builder: (context, setDescState) {
+                        final String descText = productDetails?['description'] ?? 'No description available';
+                        final int maxLines = 3;
+                        bool descExpanded = _descExpanded;
+                        final textSpan = TextSpan(
+                          text: descText,
+                          style: TextStyle(
+                            color: Color(0xFF611A04),
+                            fontFamily: 'Roboto',
+                            fontSize: relWidth(18),
+                            fontStyle: FontStyle.normal,
+                            fontWeight: FontWeight.w400,
+                            height: 1.17176,
+                            letterSpacing: relWidth(0.36),
+                          ),
+                        );
+                        final tp = TextPainter(
+                          text: textSpan,
+                          maxLines: maxLines,
+                          textDirection: TextDirection.ltr,
+                        );
+                        tp.layout(maxWidth: relWidth(350));
+                        final bool isOverflowing = tp.didExceedMaxLines;
+                        return Container(
+                          width: relWidth(383),
+                          decoration: BoxDecoration(
+                            color: Color(0xFFF3F2F2),
+                            borderRadius: BorderRadius.circular(3),
+                            border: Border.all(
                               color: Color.fromRGBO(0, 0, 0, 0.22),
+                              width: 1,
                             ),
-                            SizedBox(height: relHeight(10)),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: relWidth(19)),
-                              child: Container(
-                                width: relWidth(350),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.only(
+                                  top: relHeight(7),
+                                  left: relWidth(19),
+                                ),
                                 child: Text(
-                                  productDetails?['description'] ?? 'No description available',
+                                  'Description',
                                   style: TextStyle(
                                     color: Color(0xFF611A04),
                                     fontFamily: 'Roboto',
-                                    fontSize: relWidth(18),
-                                    fontStyle: FontStyle.normal,
-                                    fontWeight: FontWeight.w400,
-                                    height: 1.17176,
-                                    letterSpacing: relWidth(0.36),
+                                    fontSize: relWidth(22),
+                                    fontStyle: FontStyle.italic,
+                                    fontWeight: FontWeight.w600,
+                                    height: 1.17182,
+                                    letterSpacing: relWidth(0.44),
                                   ),
                                 ),
                               ),
-                            ),
-                         ],
-                       ),
-                     ),
-                   ),
+                              SizedBox(height: relHeight(3)),
+                              Container(
+                                width: relWidth(381),
+                                height: 1,
+                                color: Color.fromRGBO(0, 0, 0, 0.22),
+                              ),
+                              SizedBox(height: relHeight(10)),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: relWidth(19)),
+                                child: Container(
+                                  width: relWidth(350),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        descText,
+                                        style: TextStyle(
+                                          color: Color(0xFF611A04),
+                                          fontFamily: 'Roboto',
+                                          fontSize: relWidth(18),
+                                          fontStyle: FontStyle.normal,
+                                          fontWeight: FontWeight.w400,
+                                          height: 1.17176,
+                                          letterSpacing: relWidth(0.36),
+                                        ),
+                                        maxLines: descExpanded ? null : maxLines,
+                                        overflow: descExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                                      ),
+                                      if (isOverflowing || descExpanded)
+                                        Align(
+                                          alignment: Alignment.centerRight,
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              setDescState(() {
+                                                _descExpanded = !descExpanded;
+                                              });
+                                            },
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  descExpanded ? 'See less' : 'See more',
+                                                  style: TextStyle(
+                                                    color: Color(0xFF611A04),
+                                                    fontFamily: 'Roboto',
+                                                    fontSize: relWidth(14),
+                                                    fontWeight: FontWeight.w400,
+                                                  ),
+                                                ),
+                                                SizedBox(width: relWidth(4)),
+                                                Icon(
+                                                  descExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_right,
+                                                  color: Color(0xFF611A04),
+                                                  size: relWidth(16),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+// Add this field to the state class
                    SizedBox(height: relHeight(12)),
                    Center(
                      child: Container(

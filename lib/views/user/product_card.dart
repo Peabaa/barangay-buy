@@ -114,13 +114,13 @@ class _ProductCardState extends State<ProductCard> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 2,
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.all(6.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             SizedBox(
-              height: 68.5,
+              height: 70,
               width: double.infinity,
               child: imageBytes != null
                   ? Image.memory(
@@ -133,7 +133,7 @@ class _ProductCardState extends State<ProductCard> {
                       child: Center(child: Icon(Icons.image, size: 40, color: Colors.grey)),
                     ),
             ),
-            SizedBox(height: 6),
+            SizedBox(height: 8),
             Text(
               widget.name,
               style: TextStyle(
@@ -165,6 +165,7 @@ class _ProductCardState extends State<ProductCard> {
                 ),
               ],
             ),
+            SizedBox(height: 18),
             Row(
               children: [
                 Container(
@@ -183,11 +184,45 @@ class _ProductCardState extends State<ProductCard> {
                   ),
                 ),
                 Spacer(),
-                Text('${widget.sold} sold',
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.grey[600],
-                  ),
+                FutureBuilder<DocumentSnapshot>(
+                  future: FirebaseFirestore.instance.collection('products').doc(widget.productId).get(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return SizedBox(
+                        width: 80,
+                        height: 12,
+                        child: Center(
+                          child: SizedBox(
+                            width: 10,
+                            height: 10,
+                            child: CircularProgressIndicator(strokeWidth: 1.5),
+                          ),
+                        ),
+                      );
+                    }
+                    if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
+                      return Text(
+                        'by: -',
+                        style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                      );
+                    }
+                    final data = snapshot.data!.data() as Map<String, dynamic>?;
+                    final sellerName = data?['sellerName'] ?? '-';
+                    return Container(
+                      constraints: BoxConstraints(maxWidth: 80),
+                      child: Text(
+                        'by: $sellerName',
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                          fontStyle: FontStyle.italic,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
