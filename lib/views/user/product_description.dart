@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/intl.dart';
 import 'home_header_footer.dart';
 import 'home.dart';
 import 'user_announcements.dart';
@@ -38,6 +40,24 @@ class _ProductDescriptionState extends State<ProductDescription> {
   String? userId;
   Map<String, dynamic>? productDetails;
   bool repliesExpanded = false;
+
+  String _formatTimestamp(Timestamp? timestamp) {
+    if (timestamp == null) return '';
+    final DateTime dateTime = timestamp.toDate();
+    final Duration difference = DateTime.now().difference(dateTime);
+    
+    if (difference.inMinutes < 1) {
+      return 'Just now';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes}m ago';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}d ago';
+    } else {
+      return DateFormat('MMM d, yyyy').format(dateTime);
+    }
+  }
 
   @override
   void initState() {
@@ -85,8 +105,6 @@ class _ProductDescriptionState extends State<ProductDescription> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
     final userRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
-    final userDoc = await userRef.get();
-    final favorites = (userDoc.data()?['favorites'] as List<dynamic>?) ?? [];
     if (isFavorite) {
       await userRef.update({
         'favorites': FieldValue.arrayRemove([widget.productId])
@@ -241,7 +259,7 @@ class _ProductDescriptionState extends State<ProductDescription> {
                                     ),
                                     SizedBox(width: relWidth(8)),
                                     Container(
-                                      width: relWidth(60),
+                                      width: relWidth(120),
                                       height: relHeight(26),
                                       child: Center(
                                         child: Text(
@@ -338,7 +356,7 @@ class _ProductDescriptionState extends State<ProductDescription> {
                         final tp = TextPainter(
                           text: textSpan,
                           maxLines: maxLines,
-                          textDirection: TextDirection.ltr,
+                          textDirection: ui.TextDirection.ltr,
                         );
                         tp.layout(maxWidth: relWidth(350));
                         final bool isOverflowing = tp.didExceedMaxLines;
@@ -432,6 +450,7 @@ class _ProductDescriptionState extends State<ProductDescription> {
                                             ),
                                           ),
                                         ),
+                                        SizedBox(height: relHeight(10)),
                                     ],
                                   ),
                                 ),
@@ -685,6 +704,7 @@ class _ProductDescriptionState extends State<ProductDescription> {
                                    final String commenter = data['username'] ?? 'Unknown';
                                    final String comment = data['comment'] ?? '';
                                    final String commentId = doc.id;
+                                   final Timestamp? timestamp = data['timestamp'] as Timestamp?;
                                    return StatefulBuilder(
                                      builder: (context, setCommentState) {
                                        final showReplies = repliesExpandedMap[commentId] ?? false;
@@ -711,22 +731,32 @@ class _ProductDescriptionState extends State<ProductDescription> {
                                                    Row(
                                                      children: [
                                                        Expanded(
-                                                         child: Container(
-                                                           width: relWidth(150),
-                                                           height: relHeight(22),
-                                                           child: Text(
-                                                             commenter,
-                                                             style: TextStyle(
-                                                               color: Color(0xFF611A04).withOpacity(0.50),
-                                                               fontFamily: 'Roboto',
-                                                               fontSize: relWidth(20),
-                                                               fontStyle: FontStyle.italic,
-                                                               fontWeight: FontWeight.w400,
-                                                               height: 1.17182,
-                                                               letterSpacing: relWidth(0.4),
+                                                         child: Column(
+                                                           crossAxisAlignment: CrossAxisAlignment.start,
+                                                           children: [
+                                                             Text(
+                                                               commenter,
+                                                               style: TextStyle(
+                                                                 color: Color(0xFF611A04).withOpacity(0.50),
+                                                                 fontFamily: 'Roboto',
+                                                                 fontSize: relWidth(20),
+                                                                 fontStyle: FontStyle.italic,
+                                                                 fontWeight: FontWeight.w400,
+                                                                 height: 1.17182,
+                                                                 letterSpacing: relWidth(0.4),
+                                                               ),
+                                                               overflow: TextOverflow.ellipsis,
                                                              ),
-                                                             overflow: TextOverflow.ellipsis,
-                                                           ),
+                                                             Text(
+                                                               _formatTimestamp(timestamp),
+                                                               style: TextStyle(
+                                                                 color: Color(0xFF888888),
+                                                                 fontFamily: 'Roboto',
+                                                                 fontSize: relWidth(12),
+                                                                 fontWeight: FontWeight.w400,
+                                                               ),
+                                                             ),
+                                                           ],
                                                          ),
                                                        ),
                                                        if (isOwnComment)
@@ -954,6 +984,7 @@ class _ProductDescriptionState extends State<ProductDescription> {
                                                                final String replyUser = replyData['username'] ?? 'Unknown';
                                                                final String replyText = replyData['reply'] ?? '';
                                                                final String replyId = replyDoc.id;
+                                                               final Timestamp? replyTimestamp = replyData['timestamp'] as Timestamp?;
                                                                final currentUser = FirebaseAuth.instance.currentUser;
                                                                final isOwnReply = currentUser != null && replyData['commenterId'] == currentUser.uid;
                                                                return Padding(
@@ -974,22 +1005,32 @@ class _ProductDescriptionState extends State<ProductDescription> {
                                                                            Row(
                                                                              children: [
                                                                                Expanded(
-                                                                                 child: Container(
-                                                                                   width: relWidth(150),
-                                                                                   height: relHeight(22),
-                                                                                   child: Text(
-                                                                                     replyUser,
-                                                                                     style: TextStyle(
-                                                                                       color: Color(0xFF611A04).withOpacity(0.50),
-                                                                                       fontFamily: 'Roboto',
-                                                                                       fontSize: relWidth(20),
-                                                                                       fontStyle: FontStyle.italic,
-                                                                                       fontWeight: FontWeight.w400,
-                                                                                       height: 1.17182,
-                                                                                       letterSpacing: relWidth(0.4),
+                                                                                 child: Column(
+                                                                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                   children: [
+                                                                                     Text(
+                                                                                       replyUser,
+                                                                                       style: TextStyle(
+                                                                                         color: Color(0xFF611A04).withOpacity(0.50),
+                                                                                         fontFamily: 'Roboto',
+                                                                                         fontSize: relWidth(20),
+                                                                                         fontStyle: FontStyle.italic,
+                                                                                         fontWeight: FontWeight.w400,
+                                                                                         height: 1.17182,
+                                                                                         letterSpacing: relWidth(0.4),
+                                                                                       ),
+                                                                                       overflow: TextOverflow.ellipsis,
                                                                                      ),
-                                                                                     overflow: TextOverflow.ellipsis,
-                                                                                   ),
+                                                                                     Text(
+                                                                                       _formatTimestamp(replyTimestamp),
+                                                                                       style: TextStyle(
+                                                                                         color: Color(0xFF888888),
+                                                                                         fontFamily: 'Roboto',
+                                                                                         fontSize: relWidth(12),
+                                                                                         fontWeight: FontWeight.w400,
+                                                                                       ),
+                                                                                     ),
+                                                                                   ],
                                                                                  ),
                                                                                ),
                                                                                if (isOwnReply)
