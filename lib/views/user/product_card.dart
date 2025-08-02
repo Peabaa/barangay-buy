@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'product_description.dart';
@@ -55,8 +54,7 @@ class _ProductCardState extends State<ProductCard> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
     final userRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
-    final userDoc = await userRef.get();
-    final favorites = (userDoc.data()?['favorites'] as List<dynamic>?) ?? [];
+    
     if (isFavorite) {
       // Remove from favorites
       await userRef.update({
@@ -67,10 +65,56 @@ class _ProductCardState extends State<ProductCard> {
       await userRef.set({
         'favorites': FieldValue.arrayUnion([widget.productId])
       }, SetOptions(merge: true));
+      
+      // Create favorite notification for the product owner
+      await _createFavoriteNotification();
     }
     setState(() {
       isFavorite = !isFavorite;
     });
+  }
+
+  Future<void> _createFavoriteNotification() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      // Get current user's username
+      final currentUserDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      final currentUsername = currentUserDoc.data()?['username'] ?? 'Someone';
+
+      // Get product details to find the seller
+      final productDoc = await FirebaseFirestore.instance
+          .collection('products')
+          .doc(widget.productId)
+          .get();
+      
+      if (productDoc.exists) {
+        final productData = productDoc.data()!;
+        final sellerId = productData['sellerId'];
+        final productName = productData['productName'] ?? 'your product';
+        
+        // Don't create notification if user is favoriting their own product
+        if (sellerId != user.uid) {
+          await FirebaseFirestore.instance.collection('notifications').add({
+            'userId': sellerId,
+            'type': 'favorite',
+            'username': currentUsername,
+            'productName': productName,
+            'comment': '',
+            'reply': '',
+            'title': '',
+            'timestamp': FieldValue.serverTimestamp(),
+            'read': false,
+          });
+        }
+      }
+    } catch (e) {
+      print('Error creating favorite notification: $e');
+    }
   }
 
   Color getCategoryColor(String cat) {

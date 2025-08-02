@@ -113,10 +113,131 @@ class _ProductDescriptionState extends State<ProductDescription> {
       await userRef.set({
         'favorites': FieldValue.arrayUnion([widget.productId])
       }, SetOptions(merge: true));
+      
+      // Create favorite notification for the product owner
+      await _createFavoriteNotification();
     }
     setState(() {
       isFavorite = !isFavorite;
     });
+  }
+
+  Future<void> _createFavoriteNotification() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      // Get current user's username
+      final currentUserDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+      final currentUsername = currentUserDoc.data()?['username'] ?? 'Someone';
+
+      // Get product details to find the seller
+      final productDoc = await FirebaseFirestore.instance
+          .collection('products')
+          .doc(widget.productId)
+          .get();
+      
+      if (productDoc.exists) {
+        final productData = productDoc.data()!;
+        final sellerId = productData['sellerId'];
+        final productName = productData['productName'] ?? 'your product';
+        
+        // Don't create notification if user is favoriting their own product
+        if (sellerId != user.uid) {
+          await FirebaseFirestore.instance.collection('notifications').add({
+            'userId': sellerId,
+            'type': 'favorite',
+            'username': currentUsername,
+            'productName': productName,
+            'comment': '',
+            'reply': '',
+            'title': '',
+            'timestamp': FieldValue.serverTimestamp(),
+            'read': false,
+          });
+        }
+      }
+    } catch (e) {
+      print('Error creating favorite notification: $e');
+    }
+  }
+
+  Future<void> _createCommentNotification(String commenterUsername, String commentText) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      // Get product details to find the seller
+      final productDoc = await FirebaseFirestore.instance
+          .collection('products')
+          .doc(widget.productId)
+          .get();
+      
+      if (productDoc.exists) {
+        final productData = productDoc.data()!;
+        final sellerId = productData['sellerId'];
+        final productName = productData['productName'] ?? 'your product';
+        
+        // Don't create notification if user is commenting on their own product
+        if (sellerId != user.uid) {
+          await FirebaseFirestore.instance.collection('notifications').add({
+            'userId': sellerId,
+            'type': 'comment',
+            'username': commenterUsername,
+            'productName': productName,
+            'comment': commentText,
+            'reply': '',
+            'title': '',
+            'timestamp': FieldValue.serverTimestamp(),
+            'read': false,
+          });
+        }
+      }
+    } catch (e) {
+      print('Error creating comment notification: $e');
+    }
+  }
+
+  Future<void> _createReplyNotification(String replierUsername, String replyText, DocumentSnapshot commentDoc) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      // Get the original commenter's ID from the comment document
+      final commentData = commentDoc.data() as Map<String, dynamic>;
+      final originalCommenterId = commentData['commenterId'];
+      
+      // Get product details
+      final productDoc = await FirebaseFirestore.instance
+          .collection('products')
+          .doc(widget.productId)
+          .get();
+      
+      if (productDoc.exists && originalCommenterId != null) {
+        final productData = productDoc.data()!;
+        final productName = productData['productName'] ?? 'a product';
+        
+        // Don't create notification if user is replying to their own comment
+        if (originalCommenterId != user.uid) {
+          await FirebaseFirestore.instance.collection('notifications').add({
+            'userId': originalCommenterId,
+            'type': 'reply',
+            'username': replierUsername,
+            'productName': productName,
+            'comment': '',
+            'reply': replyText,
+            'title': '',
+            'timestamp': FieldValue.serverTimestamp(),
+            'read': false,
+          });
+        }
+      }
+    } catch (e) {
+      print('Error creating reply notification: $e');
+    }
   }
 
   Color getCategoryColor(String cat) {
@@ -606,6 +727,10 @@ class _ProductDescriptionState extends State<ProductDescription> {
                                                            'commenterId': commenterId,
                                                            'timestamp': FieldValue.serverTimestamp(),
                                                          });
+                                                       
+                                                       // Create comment notification for the product owner
+                                                       await _createCommentNotification(username, text);
+                                                       
                                                        Navigator.of(context).pop();
                                                        ScaffoldMessenger.of(context).showSnackBar(
                                                          SnackBar(content: Text('Comment posted successfully!')),
@@ -1304,6 +1429,10 @@ class _ProductDescriptionState extends State<ProductDescription> {
                                                                                          'commenterId': commenterId,
                                                                                          'timestamp': FieldValue.serverTimestamp(),
                                                                                        });
+                                                                                       
+                                                                                       // Create reply notification for the original commenter
+                                                                                       await _createReplyNotification(username, text, doc);
+                                                                                       
                                                                                        Navigator.of(context).pop();
                                                                                        ScaffoldMessenger.of(context).showSnackBar(
                                                                                          SnackBar(content: Text('Reply posted successfully!')),
