@@ -1,24 +1,36 @@
 import 'package:flutter/material.dart';
-import 'login_signup_forms.dart';
-class LoginSignupScreen extends StatelessWidget {
+import '../controllers/login_signup_screen_controller.dart';
+import '../models/login_signup_screen_model.dart';
+
+class LoginSignupScreen extends StatefulWidget {
   const LoginSignupScreen({super.key});
+
+  @override
+  State<LoginSignupScreen> createState() => _LoginSignupScreenState();
+}
+
+class _LoginSignupScreenState extends State<LoginSignupScreen> {
+  late LoginSignupScreenModel _model;
+
+  @override
+  void initState() {
+    super.initState();
+    _model = const LoginSignupScreenModel();
+  }
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     
-    double relWidth(double dp) => screenWidth * (dp / 412);
-    double relHeight(double dp) => screenHeight * (dp / 915);
+    double relWidth(double dp) => LoginSignupScreenController.calculateRelativeWidth(dp, screenWidth);
+    double relHeight(double dp) => LoginSignupScreenController.calculateRelativeHeight(dp, screenHeight);
 
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Image.asset(
-            'assets/images/background.png',
-            fit: BoxFit.cover,
-          ),
+          LoginSignupScreenController.getBackgroundImage(),
           Center(
             child: SingleChildScrollView(
               child: Container(
@@ -27,117 +39,111 @@ class LoginSignupScreen extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.asset(
-                      'assets/images/Logo.png',
-                      height: relHeight(130),
-                    ),
+                    LoginSignupScreenController.getLogoWidget(relHeight(130)),
                     Stack(
                       alignment: Alignment.center,
                       children: [
                         Text(
                           'BarangayBuy',
-                          style: TextStyle(
-                            fontFamily: 'SofiaSansCondensed',
+                          style: LoginSignupScreenController.getTitleTextStyle(
                             fontSize: relWidth(63),
-                            foreground: Paint()
-                              ..style = PaintingStyle.stroke
-                              ..strokeWidth = 2
-                              ..color = Colors.white,
-                            shadows: [
-                              Shadow(
-                                color: Colors.black26,
-                                offset: Offset(relWidth(3), relHeight(5)),
-                                blurRadius: relWidth(12),
-                              ),
-                            ],
+                            color: const Color(0xFFA22304),
+                            isOutline: true,
                           ),
                         ),
                         Text(
                           'BarangayBuy',
-                          style: TextStyle(
-                            fontFamily: 'SofiaSansCondensed',
+                          style: LoginSignupScreenController.getTitleTextStyle(
                             fontSize: relWidth(63),
-                            color: Color(0xFFA22304),
+                            color: const Color(0xFFA22304),
                           ),
                         ),
                       ],
                     ),
                     SizedBox(height: relHeight(1)),
-                    Divider(
+                    LoginSignupScreenController.getDivider(
                       color: Colors.black54,
                       thickness: relHeight(1),
                     ),
                     SizedBox(height: relHeight(24)),
                     // Sign Up Button
                     ElevatedButton(
-                      onPressed: (){
-                        // Navigate to Sign Up Screen
-                        Navigator.of(context).push(
-                          PageRouteBuilder(
-                            pageBuilder: (context, animation, secondaryAnimation) => LoginScreen(isLogin: false),
-                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                              return FadeTransition(
-                                opacity: animation,
-                                child: child,
-                              );
-                            },
-                            transitionDuration: Duration(milliseconds: 200),
-                          ),
+                      onPressed: _model.isLoading ? null : () async {
+                        setState(() {
+                          _model = LoginSignupScreenController.updateButtonSelection(
+                            currentModel: _model,
+                            isSignupSelected: true,
+                            isLoginSelected: false,
+                          );
+                        });
+                        
+                        await LoginSignupScreenController.handleButtonPress(
+                          context: context,
+                          model: _model,
+                          onPressed: () => LoginSignupScreenController.navigateToSignup(context),
                         );
+
+                        setState(() {
+                          _model = LoginSignupScreenController.clearStates(_model);
+                        });
                       },
-                      style: ElevatedButton.styleFrom(
+                      style: LoginSignupScreenController.getSignupButtonStyle(
                         minimumSize: Size(relWidth(158), relHeight(45)),
-                        backgroundColor: Colors.white,
-                        foregroundColor: Color(0xFFFF5B29),
-                        textStyle: TextStyle(
-                          fontFamily: 'RobotoCondensed',
-                          fontSize: relWidth(30),
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(relWidth(3)),
-                          side: BorderSide(
-                            color: Color(0xFFFF5B29),
-                            width: relWidth(2),
-                          ),
-                        ),
+                        borderRadius: relWidth(3),
+                        borderWidth: relWidth(2),
+                        fontSize: relWidth(30),
+                        isSelected: _model.isSignupSelected,
                       ),
-                      child: Text('Sign Up'),
+                      child: _model.isLoading && _model.isSignupSelected
+                        ? SizedBox(
+                            width: relWidth(20),
+                            height: relWidth(20),
+                            child: const CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const Text('Sign Up'),
                     ),
                     SizedBox(height: relHeight(20)),
                     // Login Button
                     ElevatedButton(
-                      onPressed: () {
-                        // Navigate to Login Screen
-                        Navigator.of(context).push(
-                          PageRouteBuilder(
-                            pageBuilder: (context, animation, secondaryAnimation) => LoginScreen(),
-                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                              return FadeTransition(
-                                opacity: animation,
-                                child: child,
-                              );
-                            },
-                            transitionDuration: Duration(milliseconds: 200),
-                          ),
+                      onPressed: _model.isLoading ? null : () async {
+                        setState(() {
+                          _model = LoginSignupScreenController.updateButtonSelection(
+                            currentModel: _model,
+                            isSignupSelected: false,
+                            isLoginSelected: true,
+                          );
+                        });
+                        
+                        await LoginSignupScreenController.handleButtonPress(
+                          context: context,
+                          model: _model,
+                          onPressed: () => LoginSignupScreenController.navigateToLogin(context),
                         );
+
+                        setState(() {
+                          _model = LoginSignupScreenController.clearStates(_model);
+                        });
                       },
-                      style: ElevatedButton.styleFrom(
+                      style: LoginSignupScreenController.getLoginButtonStyle(
                         minimumSize: Size(relWidth(158), relHeight(45)),
-                        backgroundColor: Color(0xFFFF5B29),
-                        foregroundColor: Colors.white,
-                        textStyle: TextStyle(
-                          fontFamily: 'RobotoCondensed',
-                          fontSize: relWidth(30),
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(relWidth(3)),
-                          side: BorderSide(
-                            color: Color(0xFFFF5B29),
-                            width: relWidth(2),
-                          ),
-                        ),
+                        borderRadius: relWidth(3),
+                        borderWidth: relWidth(2),
+                        fontSize: relWidth(30),
+                        isSelected: _model.isLoginSelected,
                       ),
-                      child: Text('Login'),
+                      child: _model.isLoading && _model.isLoginSelected
+                        ? SizedBox(
+                            width: relWidth(20),
+                            height: relWidth(20),
+                            child: const CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const Text('Login'),
                     ),
                   ],
                 ),
