@@ -240,6 +240,311 @@ class _ProductDescriptionState extends State<ProductDescription> {
     }
   }
 
+  bool _isOwner() {
+    final user = FirebaseAuth.instance.currentUser;
+    return user != null && productDetails?['sellerId'] == user.uid;
+  }
+
+  Future<void> _editProductName() async {
+    final nameController = TextEditingController(text: widget.name);
+    
+    await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        final screenWidth = MediaQuery.of(dialogContext).size.width;
+        final screenHeight = MediaQuery.of(dialogContext).size.height;
+        double relWidth(double dp) => screenWidth * (dp / 412);
+        double relHeight(double dp) => screenHeight * (dp / 915);
+        
+        return Center(
+          child: SingleChildScrollView(
+            child: AlertDialog(
+              backgroundColor: const Color(0xFFF3F2F2),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(3),
+                side: const BorderSide(
+                  color: Color.fromRGBO(0, 0, 0, 0.22),
+                  width: 1,
+                ),
+              ),
+              contentPadding: EdgeInsets.zero,
+              content: Container(
+                width: relWidth(312),
+                padding: EdgeInsets.symmetric(horizontal: relWidth(10)),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(height: relHeight(15)),
+                    Text(
+                      'Edit Product Name',
+                      style: TextStyle(
+                        color: const Color(0xFF611A04),
+                        fontFamily: 'Roboto',
+                        fontSize: relWidth(16),
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.32,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: relHeight(9)),
+                    Divider(
+                      color: const Color.fromRGBO(0, 0, 0, 0.22),
+                      thickness: 1,
+                    ),
+                    SizedBox(height: relHeight(15)),
+                    Container(
+                      width: relWidth(275),
+                      height: relHeight(80),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(3),
+                        border: Border.all(
+                          color: const Color(0xFF611A04),
+                          width: 2,
+                        ),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: relWidth(15),
+                          vertical: relHeight(8),
+                        ),
+                        child: TextField(
+                          controller: nameController,
+                          decoration: const InputDecoration(
+                            hintText: 'Enter product name...',
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          style: TextStyle(
+                            fontFamily: 'Roboto',
+                            fontSize: relWidth(16),
+                            color: const Color(0xFF611A04),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: relHeight(15)),
+                    SizedBox(
+                      width: relWidth(275),
+                      height: relHeight(28),
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          final newName = nameController.text.trim();
+                          if (newName.isNotEmpty && newName != widget.name) {
+                            Navigator.of(dialogContext).pop(true);
+                            await _updateProductField('productName', newName);
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Product name updated successfully!')),
+                              );
+                            }
+                          } else {
+                            Navigator.of(dialogContext).pop(false);
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF611A04),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        ),
+                        child: Text(
+                          'Save',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontFamily: 'Roboto',
+                            fontSize: relWidth(14),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: relHeight(15)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+    
+    nameController.dispose();
+  }
+
+  Future<void> _editProductDescription() async {
+    final descController = TextEditingController(text: productDetails?['description'] ?? '');
+    
+    await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        final screenWidth = MediaQuery.of(dialogContext).size.width;
+        final screenHeight = MediaQuery.of(dialogContext).size.height;
+        double relWidth(double dp) => screenWidth * (dp / 412);
+        double relHeight(double dp) => screenHeight * (dp / 915);
+        
+        return Center(
+          child: SingleChildScrollView(
+            child: AlertDialog(
+              backgroundColor: const Color(0xFFF3F2F2),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(3),
+                side: const BorderSide(
+                  color: Color.fromRGBO(0, 0, 0, 0.22),
+                  width: 1,
+                ),
+              ),
+              contentPadding: EdgeInsets.zero,
+              content: Container(
+                width: relWidth(312),
+                padding: EdgeInsets.symmetric(horizontal: relWidth(10)),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(height: relHeight(15)),
+                    Text(
+                      'Edit Description',
+                      style: TextStyle(
+                        color: const Color(0xFF611A04),
+                        fontFamily: 'Roboto',
+                        fontSize: relWidth(16),
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.32,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: relHeight(9)),
+                    Divider(
+                      color: const Color.fromRGBO(0, 0, 0, 0.22),
+                      thickness: 1,
+                    ),
+                    SizedBox(height: relHeight(15)),
+                    Container(
+                      width: relWidth(275),
+                      height: relHeight(160),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(3),
+                        border: Border.all(
+                          color: const Color(0xFF611A04),
+                          width: 2,
+                        ),
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: relWidth(15),
+                          vertical: relHeight(12),
+                        ),
+                        child: TextField(
+                          controller: descController,
+                          maxLines: null,
+                          expands: true,
+                          decoration: const InputDecoration(
+                            hintText: 'Enter product description...',
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          style: TextStyle(
+                            fontFamily: 'Roboto',
+                            fontSize: relWidth(16),
+                            color: const Color(0xFF611A04),
+                            fontWeight: FontWeight.w500,
+                          ),
+                          textAlignVertical: TextAlignVertical.top,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: relHeight(15)),
+                    SizedBox(
+                      width: relWidth(275),
+                      height: relHeight(28),
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          final newDescription = descController.text.trim();
+                          if (newDescription.isNotEmpty) {
+                            Navigator.of(dialogContext).pop(true);
+                            await _updateProductField('description', newDescription);
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Description updated successfully!')),
+                              );
+                            }
+                          } else {
+                            Navigator.of(dialogContext).pop(false);
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF611A04),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        ),
+                        child: Text(
+                          'Save',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontFamily: 'Roboto',
+                            fontSize: relWidth(14),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: relHeight(15)),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+    
+    descController.dispose();
+  }
+
+  Future<void> _updateProductField(String field, String value) async {
+    try {
+      // Update both collections
+      await FirebaseFirestore.instance
+          .collection('products')
+          .doc(widget.productId)
+          .update({field: value});
+
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .collection('products')
+            .where('productId', isEqualTo: widget.productId)
+            .get()
+            .then((querySnapshot) {
+          for (var doc in querySnapshot.docs) {
+            doc.reference.update({field: value});
+          }
+        });
+      }
+
+      // Refresh product details
+      setState(() {
+        if (field == 'productName') {
+          // Update the widget's name - we'll need to handle this differently
+          productDetails?['productName'] = value;
+        } else {
+          productDetails?[field] = value;
+        }
+      });
+    } catch (e) {
+      print('Error updating product field: $e');
+    }
+  }
+
   Color getCategoryColor(String cat) {
     switch (cat) {
       case 'Fashion': return Color(0xFFC5007D);
@@ -355,19 +660,36 @@ class _ProductDescriptionState extends State<ProductDescription> {
                               children: [
                                 Container(
                                   width: relWidth(230),
-                                  child: Text(
-                                    widget.name,
-                                    textAlign: TextAlign.left,
-                                    style: TextStyle(
-                                      color: Color(0xFF611A04),
-                                      fontFamily: 'Roboto',
-                                      fontSize: relWidth(22),
-                                      fontStyle: FontStyle.normal,
-                                      fontWeight: FontWeight.w600,
-                                      height: 1.17182, 
-                                      letterSpacing: relWidth(0.44),
-                                    ),
-                                    softWrap: true,
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          widget.name,
+                                          textAlign: TextAlign.left,
+                                          style: TextStyle(
+                                            color: Color(0xFF611A04),
+                                            fontFamily: 'Roboto',
+                                            fontSize: relWidth(22),
+                                            fontStyle: FontStyle.normal,
+                                            fontWeight: FontWeight.w600,
+                                            height: 1.17182, 
+                                            letterSpacing: relWidth(0.44),
+                                          ),
+                                          softWrap: true,
+                                        ),
+                                      ),
+                                      if (_isOwner()) ...[
+                                        SizedBox(width: relWidth(8)),
+                                        GestureDetector(
+                                          onTap: () => _editProductName(),
+                                          child: Icon(
+                                            Icons.edit,
+                                            color: Color(0xFF611A04),
+                                            size: relWidth(18),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
                                   ),
                                 ),
                                 SizedBox(height: relHeight(10)),
@@ -378,7 +700,6 @@ class _ProductDescriptionState extends State<ProductDescription> {
                                       width: relWidth(32),
                                       height: relHeight(32),
                                     ),
-                                    SizedBox(width: relWidth(8)),
                                     Container(
                                       width: relWidth(120),
                                       height: relHeight(26),
@@ -422,9 +743,12 @@ class _ProductDescriptionState extends State<ProductDescription> {
                           // Price
                           Positioned(
                             top: relHeight(7),
-                            right: relWidth(17),
+                            right: relWidth(10),
                             child: Container(
-                              width: relWidth(70),
+                              constraints: BoxConstraints(
+                                minWidth: relWidth(70),
+                                maxWidth: relWidth(150),
+                              ),
                               height: relHeight(26),
                               child: Center(
                                 child: Text(
@@ -498,18 +822,33 @@ class _ProductDescriptionState extends State<ProductDescription> {
                                 padding: EdgeInsets.only(
                                   top: relHeight(7),
                                   left: relWidth(19),
+                                  right: relWidth(19),
                                 ),
-                                child: Text(
-                                  'Description',
-                                  style: TextStyle(
-                                    color: Color(0xFF611A04),
-                                    fontFamily: 'Roboto',
-                                    fontSize: relWidth(22),
-                                    fontStyle: FontStyle.italic,
-                                    fontWeight: FontWeight.w600,
-                                    height: 1.17182,
-                                    letterSpacing: relWidth(0.44),
-                                  ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Description',
+                                      style: TextStyle(
+                                        color: Color(0xFF611A04),
+                                        fontFamily: 'Roboto',
+                                        fontSize: relWidth(22),
+                                        fontStyle: FontStyle.italic,
+                                        fontWeight: FontWeight.w600,
+                                        height: 1.17182,
+                                        letterSpacing: relWidth(0.44),
+                                      ),
+                                    ),
+                                    if (_isOwner())
+                                      GestureDetector(
+                                        onTap: () => _editProductDescription(),
+                                        child: Icon(
+                                          Icons.edit,
+                                          color: Color(0xFF611A04),
+                                          size: relWidth(18),
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ),
                               SizedBox(height: relHeight(3)),
@@ -571,11 +910,11 @@ class _ProductDescriptionState extends State<ProductDescription> {
                                             ),
                                           ),
                                         ),
-                                        SizedBox(height: relHeight(10)),
                                     ],
                                   ),
                                 ),
                               ),
+                              SizedBox(height: relHeight(10)),
                             ],
                           ),
                         );
