@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../../controllers/posted_announcement_controller.dart';
+import '../../models/posted_announcement_model.dart';
 
 class PostedAnnouncement extends StatefulWidget {
   final String text;
@@ -22,26 +23,19 @@ class PostedAnnouncement extends StatefulWidget {
 }
 
 class _PostedAnnouncementState extends State<PostedAnnouncement> {
-String _getFormattedTimestamp(Timestamp? timestamp) {
-  if (timestamp == null) return '';
-  try {
-    // Convert UTC to local time
-    final dateUtc = timestamp.toDate();
-    final date = dateUtc.toLocal();
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    final month = months[date.month - 1];
-    int hour = date.hour;
-    final minute = date.minute.toString().padLeft(2, '0');
-    final ampm = hour >= 12 ? 'PM' : 'AM';
-    hour = hour % 12;
-    if (hour == 0) hour = 12;
-    return '$month ${date.day}, ${date.year}, $hour:$minute $ampm';
-  } catch (e) {
-    return '';
+  late PostedAnnouncementModel _model;
+
+  @override
+  void initState() {
+    super.initState();
+    _model = PostedAnnouncementModel(
+      text: widget.text,
+      username: widget.username,
+      selectedBarangay: widget.selectedBarangay,
+      announcementId: widget.announcementId,
+      timestamp: widget.timestamp,
+    );
   }
-}
-bool expanded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -50,27 +44,29 @@ bool expanded = false;
     double relWidth(double dp) => screenWidth * (dp / 412);
     double relHeight(double dp) => screenHeight * (dp / 915);
 
-    final textStyle = TextStyle(
-      color: const Color(0xFF611A04),
-      fontFamily: 'Roboto',
-      fontSize: relWidth(13),
-      fontWeight: FontWeight.w400,
-      fontStyle: FontStyle.normal,
-      height: 1.17176,
-      letterSpacing: 0.22,
-    );
+    final textStyle = PostedAnnouncementController.getAnnouncementTextStyle(relWidth(13));
 
-    final isOverflowing = _isOverflowing(
-      widget.text,
+    final isOverflowing = PostedAnnouncementController.checkTextOverflow(
+      _model.text,
       relWidth(300) - relWidth(28), // container width minus padding
       textStyle,
     );
 
+    // Update model with overflow status if changed
+    if (isOverflowing != _model.isOverflowing) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _model = PostedAnnouncementController.updateOverflowStatus(_model, isOverflowing);
+        });
+      });
+    }
+
     return Container(
       width: relWidth(300), // Use a fixed width relative to screen size
-      constraints: BoxConstraints(
-        minHeight: relHeight(173),
-        maxHeight: expanded ? double.infinity : relHeight(173),
+      constraints: PostedAnnouncementController.getContainerConstraints(
+        _model.isExpanded,
+        relHeight(173),
+        relHeight(173),
       ),
       clipBehavior: Clip.hardEdge, // Add this to prevent overflow warning
       margin: EdgeInsets.symmetric(vertical: relHeight(8)),
@@ -110,14 +106,7 @@ bool expanded = false;
                   children: [
                     Text(
                       widget.username,
-                      style: TextStyle(
-                        color: const Color(0xFF611A04),
-                        fontFamily: 'Roboto',
-                        fontSize: relWidth(15),
-                        fontWeight: FontWeight.w400,
-                        fontStyle: FontStyle.italic,
-                        letterSpacing: 0.5,
-                      ),
+                      style: PostedAnnouncementController.getUsernameTextStyle(relWidth(15)),
                     ),
                     SizedBox(height: relHeight(2)),
                     Container(
@@ -125,16 +114,8 @@ bool expanded = false;
                       height: relHeight(12),
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        _getFormattedTimestamp(widget.timestamp),
-                        style: TextStyle(
-                          color: Color.fromRGBO(0, 0, 0, 0.31),
-                          fontFamily: 'Roboto',
-                          fontSize: relWidth(10),
-                          fontStyle: FontStyle.italic,
-                          fontWeight: FontWeight.w400,
-                          height: 1.17164,
-                          letterSpacing: 0.2,
-                        ),
+                        PostedAnnouncementController.formatTimestamp(widget.timestamp),
+                        style: PostedAnnouncementController.getTimestampTextStyle(relWidth(10)),
                       ),
                     ),
                   ],
@@ -172,15 +153,7 @@ bool expanded = false;
                                 child: Text(
                                   'Delete Announcement',
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: const Color(0xFF611A04),
-                                    fontFamily: 'Roboto',
-                                    fontSize: relWidth(18),
-                                    fontWeight: FontWeight.w700,
-                                    fontStyle: FontStyle.normal,
-                                    height: 1.17182,
-                                    letterSpacing: 0.32,
-                                  ),
+                                  style: PostedAnnouncementController.getDialogTitleTextStyle(relWidth(18)),
                                 ),
                               ),
                               // Divider line, 9px below the title
@@ -205,37 +178,22 @@ bool expanded = false;
                                 child: Text(
                                   'Do you want to delete this announcement?',
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: const Color(0xFF611A04),
-                                    fontFamily: 'Roboto',
-                                    fontSize: relWidth(20),
-                                    fontWeight: FontWeight.w700,
-                                    fontStyle: FontStyle.normal,
-                                    height: 1.17182, // 117.182%
-                                    letterSpacing: 0.4,
-                                  ),
+                                  style: PostedAnnouncementController.getDialogMessageTextStyle(relWidth(20)),
                                 ),
                               ),
                               SizedBox(height: relHeight(15)),
                               GestureDetector(
                                 onTap: () async {
-                                  // Deletes from both app and Firebase 
+                                  // Delete using the controller
                                   try {
-                                    await FirebaseFirestore.instance
-                                      .collection('users')
-                                      .doc(FirebaseAuth.instance.currentUser!.uid)
-                                      .collection('announcements')
-                                      .doc(widget.announcementId)
-                                      .delete();
-                                  } catch (e) {}
-                                  try {
-                                    await FirebaseFirestore.instance
-                                      .collection('announcements')
-                                      .doc(widget.announcementId)
-                                      .delete();
-                                  } catch (e) {}
-                                  Navigator.of(context).pop();
-                                  setState(() {}); // Refresh UI
+                                    bool success = await PostedAnnouncementController.deleteAnnouncement(widget.announcementId);
+                                    Navigator.of(context).pop();
+                                    if (success) {
+                                      setState(() {}); // Refresh UI
+                                    }
+                                  } catch (e) {
+                                    // Handle error if needed
+                                  }
                                 },
                                 child: Container(
                                   width: relWidth(133),
@@ -251,12 +209,7 @@ bool expanded = false;
                                   alignment: Alignment.center,
                                   child: Text(
                                     'Delete',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontFamily: 'Roboto',
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: relWidth(16),
-                                    ),
+                                    style: PostedAnnouncementController.getDeleteButtonTextStyle(relWidth(16)),
                                   ),
                                 ),
                               ),
@@ -279,25 +232,27 @@ bool expanded = false;
           Padding(
             padding: EdgeInsets.symmetric(horizontal: relWidth(14)),
             child: Text(
-              widget.text,
-              maxLines: expanded ? null : 5,
-              overflow: expanded ? TextOverflow.visible : TextOverflow.ellipsis,
+              _model.text,
+              maxLines: _model.isExpanded ? null : 5,
+              overflow: _model.isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
               style: textStyle,
             ),
           ),
-          if (isOverflowing || expanded)
+          if (_model.isOverflowing || _model.isExpanded)
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 GestureDetector(
-                  onTap: () => setState(() => expanded = !expanded),
+                  onTap: () => setState(() {
+                    _model = PostedAnnouncementController.toggleExpansion(_model);
+                  }),
                   child: Padding(
                     padding: EdgeInsets.only(
                       bottom: relHeight(8),
                       top: relHeight(4),
                     ),
                     child: Image.asset(
-                      expanded
+                      _model.isExpanded
                           ? 'assets/images/arrow-up.png'
                           : 'assets/images/arrow-down.png',
                       width: relWidth(24),
@@ -312,31 +267,10 @@ bool expanded = false;
     );
   }
 
-  bool _isOverflowing(String text, double maxWidth, TextStyle style) {
-    final span = TextSpan(text: text, style: style);
-    final tp = TextPainter(
-      text: span,
-      maxLines: 5,
-      textDirection: TextDirection.ltr,
-    );
-    tp.layout(maxWidth: maxWidth);
-    return tp.didExceedMaxLines;
-  }
-
   Future<void> postAnnouncement(String text) async {
-    final user = FirebaseAuth.instance.currentUser;
-    final userDoc = await FirebaseFirestore.instance
-        .collection('users')
-        .doc(user!.uid)
-        .get();
-    final username = userDoc.data()?['username'] ?? user.email ?? 'Unknown';
-
-    await FirebaseFirestore.instance.collection('announcements').add({
-      'text': text,
-      'barangay': widget.selectedBarangay,
-      'timestamp': FieldValue.serverTimestamp(),
-      'adminEmail': user.email,
-      'username': username, 
-    });
+    await PostedAnnouncementController.createAnnouncement(
+      text: text,
+      barangay: widget.selectedBarangay,
+    );
   }
 }

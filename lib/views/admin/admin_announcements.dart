@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'admin_header_footer.dart';
 import 'posted_announcement.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import '../../models/announcement_model.dart';
+import '../../controllers/announcement_controller.dart';
 
 class AdminAnnouncements extends StatefulWidget {
   final String selectedBarangay;
@@ -16,6 +16,176 @@ class AdminAnnouncements extends StatefulWidget {
 
 class _AdminAnnouncementsState extends State<AdminAnnouncements> {
   String _searchQuery = '';
+
+  double relWidth(double width) {
+    return width * MediaQuery.of(context).size.width / 375;
+  }
+
+  double relHeight(double height) {
+    return height * MediaQuery.of(context).size.height / 812;
+  }
+  final TextEditingController _createAnnouncementController = TextEditingController();
+
+  @override
+  void dispose() {
+    _createAnnouncementController.dispose();
+    super.dispose();
+  }
+
+  // Handle search query changes
+  void _onSearchChanged(String query) {
+    setState(() {
+      _searchQuery = query.toLowerCase();
+    });
+  }
+
+  // Handle create announcement
+  Future<void> _createAnnouncement() async {
+    final text = _createAnnouncementController.text.trim();
+    if (text.isEmpty) {
+      _showSnackBar('Please enter announcement text');
+      return;
+    }
+
+    try {
+      await AnnouncementController.createAnnouncement(
+        text: text,
+        barangay: widget.selectedBarangay,
+      );
+      
+      _createAnnouncementController.clear();
+      Navigator.of(context).pop();
+      _showSnackBar('Announcement posted successfully!');
+    } catch (e) {
+      _showSnackBar('Error: ${e.toString()}');
+    }
+  }
+
+  // Show snackbar helper
+  void _showSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: const Color(0xFF611A04),
+      ),
+    );
+  }
+
+  // Show create announcement dialog
+  void _showCreateAnnouncementDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => _buildCreateAnnouncementDialog(),
+    );
+  }
+
+  // Build create announcement dialog
+  Widget _buildCreateAnnouncementDialog() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    double relWidth(double dp) => screenWidth * (dp / 412);
+    double relHeight(double dp) => screenHeight * (dp / 915);
+
+    return Center(
+      child: SingleChildScrollView(
+        child: AlertDialog(
+          backgroundColor: const Color(0xFFF3F2F2),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(3),
+            side: const BorderSide(
+              color: Color.fromRGBO(0, 0, 0, 0.22),
+              width: 1,
+            ),
+          ),
+          contentPadding: EdgeInsets.zero,
+          content: Container(
+            width: relWidth(312),
+            padding: EdgeInsets.symmetric(horizontal: relWidth(10)),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(height: relHeight(15)),
+                Text(
+                  'Create Announcement',
+                  style: TextStyle(
+                    color: const Color(0xFF611A04),
+                    fontFamily: 'Roboto',
+                    fontSize: relWidth(16),
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.32,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                SizedBox(height: relHeight(9)),
+                Divider(
+                  color: const Color.fromRGBO(0, 0, 0, 0.22),
+                  thickness: 1,
+                ),
+                SizedBox(height: relHeight(15)),
+                Container(
+                  width: relWidth(275),
+                  height: relHeight(145),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(3),
+                    border: Border.all(
+                      color: const Color(0xFF611A04),
+                      width: 1,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.all(relWidth(12)),
+                    child: TextField(
+                      controller: _createAnnouncementController,
+                      maxLines: null,
+                      expands: true,
+                      decoration: const InputDecoration(
+                        hintText: 'Post your announcement here...',
+                        border: InputBorder.none,
+                      ),
+                      style: TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: relWidth(14),
+                        color: const Color(0xFF611A04),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: relHeight(15)),
+                SizedBox(
+                  width: relWidth(275),
+                  height: relHeight(28),
+                  child: ElevatedButton(
+                    onPressed: _createAnnouncement,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF611A04),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                      padding: EdgeInsets.zero,
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'Post',
+                      style: TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: relWidth(14),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: relHeight(10)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,11 +215,7 @@ class _AdminAnnouncementsState extends State<AdminAnnouncements> {
                 relWidth: relWidth,
                 relHeight: relHeight,
                 selectedBarangay: widget.selectedBarangay,
-                onSearchChanged: (query) {
-                  setState(() {
-                    _searchQuery = query.toLowerCase();
-                  });
-                },
+                onSearchChanged: _onSearchChanged,
               ),
             ),
           ),
@@ -83,135 +249,7 @@ class _AdminAnnouncementsState extends State<AdminAnnouncements> {
                       Padding(
                         padding: EdgeInsets.only(right: relWidth(50)),
                         child: GestureDetector(
-                          onTap: () {
-                            final dialogController = TextEditingController();
-                            showDialog(
-                              context: context,
-                              barrierDismissible: true,
-                              builder: (context) => Center(
-                                child: SingleChildScrollView(
-                                  child: AlertDialog(
-                                    backgroundColor: const Color(0xFFF3F2F2),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(3),
-                                      side: const BorderSide(
-                                        color: Color.fromRGBO(0, 0, 0, 0.22),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    contentPadding: EdgeInsets.zero,
-                                    content: Container(
-                                      width: relWidth(312),
-                                      padding: EdgeInsets.symmetric(horizontal: relWidth(10)),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        children: [
-                                          SizedBox(height: relHeight(15)),
-                                          Text(
-                                            'Create Announcement',
-                                            style: TextStyle(
-                                              color: const Color(0xFF611A04),
-                                              fontFamily: 'Roboto',
-                                              fontSize: relWidth(16),
-                                              fontWeight: FontWeight.w700,
-                                              letterSpacing: 0.32,
-                                            ),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                          SizedBox(height: relHeight(9)),
-                                          Divider(
-                                            color: const Color.fromRGBO(0, 0, 0, 0.22),
-                                            thickness: 1,
-                                          ),
-                                          SizedBox(height: relHeight(15)),
-                                          Container(
-                                            width: relWidth(275),
-                                            height: relHeight(145),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white.withOpacity(0.8),
-                                              borderRadius: BorderRadius.circular(3),
-                                              border: Border.all(
-                                                color: const Color(0xFF611A04),
-                                                width: 1,
-                                              ),
-                                            ),
-                                            child: Padding(
-                                              padding: EdgeInsets.all(relWidth(12)),
-                                              child: TextField(
-                                                controller: dialogController,
-                                                maxLines: null,
-                                                expands: true,
-                                                decoration: const InputDecoration(
-                                                  hintText: 'Post your announcement here...',
-                                                  border: InputBorder.none,
-                                                ),
-                                                style: TextStyle(
-                                                  fontFamily: 'Roboto',
-                                                  fontSize: relWidth(14),
-                                                  color: const Color(0xFF611A04),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          SizedBox(height: relHeight(15)),
-                                          SizedBox(
-                                            width: relWidth(275),
-                                            height: relHeight(28),
-                                            child: ElevatedButton(
-                                              onPressed: () async {
-                                                final text = dialogController.text.trim();
-                                                if (text.isNotEmpty) {
-                                                  final user = FirebaseAuth.instance.currentUser;
-                                                  final userDoc = await FirebaseFirestore.instance
-                                                      .collection('users')
-                                                      .doc(user!.uid)
-                                                      .get();
-                                                  final username = userDoc.data()?['username'] ?? user.email ?? 'Unknown';
-
-                                                  await FirebaseFirestore.instance
-                                                      .collection('users')
-                                                      .doc(user.uid)
-                                                      .collection('announcements')
-                                                      .add({
-                                                    'text': text,
-                                                    'barangay': widget.selectedBarangay,
-                                                    'timestamp': FieldValue.serverTimestamp(),
-                                                    'adminEmail': user.email,
-                                                    'username': username,
-                                                  });
-
-                                                  Navigator.of(context).pop();
-                                                }
-                                              },
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: const Color(0xFF611A04),
-                                                foregroundColor: Colors.white,
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius: BorderRadius.circular(3),
-                                                ),
-                                                padding: EdgeInsets.zero,
-                                                elevation: 0,
-                                              ),
-                                              child: Text(
-                                                'Post',
-                                                style: TextStyle(
-                                                  fontFamily: 'Roboto',
-                                                  fontSize: relWidth(14),
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          SizedBox(height: relHeight(10)),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
+                          onTap: _showCreateAnnouncementDialog,
                           child: Image.asset(
                             'assets/images/addanounce.png',
                             width: relWidth(24),
@@ -222,18 +260,20 @@ class _AdminAnnouncementsState extends State<AdminAnnouncements> {
                     ],
                   ),
                   Expanded(
-                    child: StreamBuilder<QuerySnapshot>(
-                      stream: FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(FirebaseAuth.instance.currentUser!.uid)
-                          .collection('announcements')
-                          .orderBy('timestamp', descending: true)
-                          .snapshots(),
+                    child: StreamBuilder<List<AnnouncementModel>>(
+                      stream: AnnouncementController.getAnnouncementsStream(),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState == ConnectionState.waiting) {
                           return const Center(child: CircularProgressIndicator());
                         }
-                        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                        
+                        if (snapshot.hasError) {
+                          return Center(child: Text('Error: ${snapshot.error}'));
+                        }
+                        
+                        final announcements = snapshot.data ?? [];
+                        
+                        if (announcements.isEmpty) {
                           return Align(
                             alignment: Alignment.topCenter,
                             child: Column(
@@ -276,18 +316,11 @@ class _AdminAnnouncementsState extends State<AdminAnnouncements> {
                             ),
                           );
                         }
-                        final docs = snapshot.data!.docs;
                         
                         // Filter announcements based on search query
-                        final filteredDocs = docs.where((doc) {
-                          if (_searchQuery.isEmpty) return true;
-                          final data = doc.data() as Map<String, dynamic>;
-                          final text = (data['text'] ?? '').toString().toLowerCase();
-                          final username = (data['username'] ?? '').toString().toLowerCase();
-                          return text.contains(_searchQuery) || username.contains(_searchQuery);
-                        }).toList();
+                        final filteredAnnouncements = AnnouncementController.filterAnnouncements(announcements, _searchQuery);
                         
-                        if (filteredDocs.isEmpty && _searchQuery.isNotEmpty) {
+                        if (filteredAnnouncements.isEmpty && _searchQuery.isNotEmpty) {
                           return Align(
                             alignment: Alignment.topCenter,
                             child: Column(
@@ -322,16 +355,16 @@ class _AdminAnnouncementsState extends State<AdminAnnouncements> {
                         
                         return ListView.builder(
                           padding: EdgeInsets.only(top: relHeight(20), right: relWidth(20)),
-                          itemCount: filteredDocs.length,
+                          itemCount: filteredAnnouncements.length,
                           itemBuilder: (context, index) {
-                            final data = filteredDocs[index].data() as Map<String, dynamic>;
+                            final announcement = filteredAnnouncements[index];
                             return Center(
                               child: PostedAnnouncement(
-                                announcementId: filteredDocs[index].id,
-                                text: data['text'] ?? '',
-                                username: data['username'] ?? 'Unknown',
+                                announcementId: announcement.id,
+                                text: announcement.text,
+                                username: announcement.username,
                                 selectedBarangay: widget.selectedBarangay,
-                                timestamp: data['timestamp'],
+                                timestamp: announcement.timestamp,
                               ),
                             );
                           },

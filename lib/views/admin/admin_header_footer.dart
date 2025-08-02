@@ -1,6 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../login_signup.dart'; 
+import '../login_signup.dart';
+import '../../controllers/admin_header_controller.dart';
+import '../../models/admin_header_model.dart'; 
 
 class AdminHeader extends StatefulWidget {
   final double Function(double) relWidth;
@@ -24,10 +25,12 @@ class AdminHeader extends StatefulWidget {
 
 class _AdminHeaderState extends State<AdminHeader> {
   final TextEditingController _searchController = TextEditingController();
+  late AdminHeaderModel _model;
 
   @override
   void initState() {
     super.initState();
+    _model = AdminHeaderController.getCurrentUserState(widget.selectedBarangay);
     _searchController.addListener(() {
       setState(() {}); // Rebuild to show/hide clear button
     });
@@ -37,6 +40,18 @@ class _AdminHeaderState extends State<AdminHeader> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _handleSearchChanged(String query) {
+    final processedQuery = AdminHeaderController.processSearchInput(query);
+    _model = AdminHeaderController.updateSearchQuery(_model, processedQuery);
+    widget.onSearchChanged?.call(processedQuery);
+  }
+
+  void _clearSearch() {
+    _searchController.clear();
+    _model = AdminHeaderController.clearSearchQuery(_model);
+    widget.onSearchChanged?.call('');
   }
 
   @override
@@ -79,7 +94,7 @@ class _AdminHeaderState extends State<AdminHeader> {
                           SizedBox(width: widget.relWidth(5)),
                           Flexible(
                             child: Text(
-                              'Brgy ${widget.selectedBarangay}, Cebu City',
+                              AdminHeaderController.formatBarangayText(widget.selectedBarangay),
                               style: TextStyle(
                                 fontFamily: 'Roboto',
                                 fontSize: widget.relWidth(13),
@@ -121,7 +136,7 @@ class _AdminHeaderState extends State<AdminHeader> {
             ),
             child: TextField(
               controller: _searchController,
-              onChanged: widget.onSearchChanged,
+              onChanged: _handleSearchChanged,
               decoration: InputDecoration(
                 prefixIcon: Icon(
                   Icons.search,
@@ -130,10 +145,7 @@ class _AdminHeaderState extends State<AdminHeader> {
                 ),
                 suffixIcon: _searchController.text.isNotEmpty 
                   ? GestureDetector(
-                      onTap: () {
-                        _searchController.clear();
-                        widget.onSearchChanged?.call('');
-                      },
+                      onTap: _clearSearch,
                       child: Icon(
                         Icons.clear,
                         color: Color(0xFF611A04),
@@ -304,19 +316,24 @@ class AdminFooter extends StatelessWidget {
                             GestureDetector(
                               onTap: () async {
                                 Navigator.of(context).pop();
-                                // Firebase Auth logout
+                                // Use controller for logout
                                 try {
-                                  await FirebaseAuth.instance.signOut();
+                                  bool logoutSuccess = await AdminHeaderController.logout();
+                                  if (logoutSuccess) {
+                                    if (onUserTap != null) onUserTap!();
+                                    Navigator.of(context).pushAndRemoveUntil(
+                                      MaterialPageRoute(
+                                        builder: (context) => LoginSignupScreen(),
+                                      ),
+                                      (route) => false,
+                                    );
+                                  } else {
+                                    // Handle logout failure if needed
+                                    print('Logout failed');
+                                  }
                                 } catch (e) {
-                                  print('Error logging out: $e');
+                                  print('Error during logout: $e');
                                 }
-                                if (onUserTap != null) onUserTap!();
-                                Navigator.of(context).pushAndRemoveUntil(
-                                  MaterialPageRoute(
-                                    builder: (context) => LoginSignupScreen(),
-                                  ),
-                                  (route) => false,
-                                );
                               },
                               child: Container(
                                 width: relWidth(133),
