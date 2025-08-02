@@ -2,11 +2,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import '../login_signup.dart'; 
 
-class AdminHeader extends StatelessWidget {
+class AdminHeader extends StatefulWidget {
   final double Function(double) relWidth;
   final double Function(double) relHeight;
   final String selectedBarangay;
   final VoidCallback? onNotificationTap;
+  final Function(String)? onSearchChanged;
 
   const AdminHeader({
     super.key,
@@ -14,31 +15,53 @@ class AdminHeader extends StatelessWidget {
     required this.relHeight,
     this.selectedBarangay = 'Banilad',
     this.onNotificationTap,
+    this.onSearchChanged,
   });
+
+  @override
+  State<AdminHeader> createState() => _AdminHeaderState();
+}
+
+class _AdminHeaderState extends State<AdminHeader> {
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {}); // Rebuild to show/hide clear button
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: relWidth(415),
-      height: relHeight(98),
+      width: widget.relWidth(415),
+      height: widget.relHeight(98),
       color: const Color(0xFFFF5B29),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Current Barangay
           SizedBox(
-            width: relWidth(319),
+            width: widget.relWidth(319),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Padding(
-                  padding: EdgeInsets.only(left: relWidth(5)),
+                  padding: EdgeInsets.only(left: widget.relWidth(5)),
                   child: Container(
-                    width: relWidth(190),
-                    height: relHeight(23),
+                    width: widget.relWidth(190),
+                    height: widget.relHeight(23),
                     decoration: BoxDecoration(
                       color: Color(0xFFA22304).withOpacity(0.8),
-                      borderRadius: BorderRadius.circular(relWidth(23)),
+                      borderRadius: BorderRadius.circular(widget.relWidth(23)),
                       border: Border.all(
                         color: Color(0xFF611A04),
                         width: 1,
@@ -50,16 +73,16 @@ class AdminHeader extends StatelessWidget {
                         children: [
                           Image.asset(
                             'assets/images/location.png',
-                            width: relWidth(16),
-                            height: relWidth(16),
+                            width: widget.relWidth(16),
+                            height: widget.relWidth(16),
                           ),
-                          SizedBox(width: relWidth(5)),
+                          SizedBox(width: widget.relWidth(5)),
                           Flexible(
                             child: Text(
-                              'Brgy $selectedBarangay, Cebu City',
+                              'Brgy ${widget.selectedBarangay}, Cebu City',
                               style: TextStyle(
                                 fontFamily: 'Roboto',
-                                fontSize: relWidth(13),
+                                fontSize: widget.relWidth(13),
                                 fontStyle: FontStyle.italic,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.white,
@@ -83,42 +106,53 @@ class AdminHeader extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(height: relHeight(8)),
+          SizedBox(height: widget.relHeight(8)),
           // Search Bar
           Container(
-            width: relWidth(319),
-            height: relHeight(35),
+            width: widget.relWidth(319),
+            height: widget.relHeight(35),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.8),
-              borderRadius: BorderRadius.circular(relWidth(17.5)),
+              borderRadius: BorderRadius.circular(widget.relWidth(17.5)),
               border: Border.all(
                 color: Color(0xFF611A04),
                 width: 1,
               ),
             ),
             child: TextField(
+              controller: _searchController,
+              onChanged: widget.onSearchChanged,
               decoration: InputDecoration(
-                hintStyle: TextStyle(
-                  color: Color(0xFF611A04).withOpacity(0.6),
-                  fontSize: relWidth(14),
-                ),
                 prefixIcon: Icon(
                   Icons.search,
                   color: Color(0xFF611A04),
-                  size: relWidth(20),
+                  size: widget.relWidth(20),
                 ),
+                suffixIcon: _searchController.text.isNotEmpty 
+                  ? GestureDetector(
+                      onTap: () {
+                        _searchController.clear();
+                        widget.onSearchChanged?.call('');
+                      },
+                      child: Icon(
+                        Icons.clear,
+                        color: Color(0xFF611A04),
+                        size: widget.relWidth(18),
+                      ),
+                    )
+                  : null,
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.only(
-                  left: relWidth(50),
-                  right: relWidth(12),
-                  top: relHeight(10),
-                  bottom: relHeight(10),
+                  left: widget.relWidth(50),
+                  right: widget.relWidth(12),
+                  top: widget.relHeight(10),
+                  bottom: widget.relHeight(10),
                 ),
                 isDense: true,
               ),
               style: TextStyle(
                 color: Color(0xFF611A04),
-                fontSize: relWidth(14),
+                fontSize: widget.relWidth(14),
               ),
             ),
           ),

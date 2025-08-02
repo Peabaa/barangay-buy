@@ -4,7 +4,6 @@ import 'admin_header_footer.dart';
 import 'posted_announcement.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../login_signup.dart';
 
 class AdminAnnouncements extends StatefulWidget {
   final String selectedBarangay;
@@ -16,6 +15,8 @@ class AdminAnnouncements extends StatefulWidget {
 }
 
 class _AdminAnnouncementsState extends State<AdminAnnouncements> {
+  String _searchQuery = '';
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -44,6 +45,11 @@ class _AdminAnnouncementsState extends State<AdminAnnouncements> {
                 relWidth: relWidth,
                 relHeight: relHeight,
                 selectedBarangay: widget.selectedBarangay,
+                onSearchChanged: (query) {
+                  setState(() {
+                    _searchQuery = query.toLowerCase();
+                  });
+                },
               ),
             ),
           ),
@@ -271,14 +277,57 @@ class _AdminAnnouncementsState extends State<AdminAnnouncements> {
                           );
                         }
                         final docs = snapshot.data!.docs;
+                        
+                        // Filter announcements based on search query
+                        final filteredDocs = docs.where((doc) {
+                          if (_searchQuery.isEmpty) return true;
+                          final data = doc.data() as Map<String, dynamic>;
+                          final text = (data['text'] ?? '').toString().toLowerCase();
+                          final username = (data['username'] ?? '').toString().toLowerCase();
+                          return text.contains(_searchQuery) || username.contains(_searchQuery);
+                        }).toList();
+                        
+                        if (filteredDocs.isEmpty && _searchQuery.isNotEmpty) {
+                          return Align(
+                            alignment: Alignment.topCenter,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                SizedBox(height: relHeight(50)),
+                                Icon(
+                                  Icons.search_off,
+                                  size: relWidth(80),
+                                  color: const Color(0x88888888),
+                                ),
+                                SizedBox(height: relHeight(20)),
+                                Container(
+                                  width: relWidth(249),
+                                  height: relHeight(26),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    'No announcements found',
+                                    style: TextStyle(
+                                      fontFamily: 'Roboto',
+                                      fontSize: relWidth(16),
+                                      fontWeight: FontWeight.w500,
+                                      color: const Color(0x88888888),
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                        
                         return ListView.builder(
                           padding: EdgeInsets.only(top: relHeight(20), right: relWidth(20)),
-                          itemCount: docs.length,
+                          itemCount: filteredDocs.length,
                           itemBuilder: (context, index) {
-                            final data = docs[index].data() as Map<String, dynamic>;
+                            final data = filteredDocs[index].data() as Map<String, dynamic>;
                             return Center(
                               child: PostedAnnouncement(
-                                announcementId: docs[index].id,
+                                announcementId: filteredDocs[index].id,
                                 text: data['text'] ?? '',
                                 username: data['username'] ?? 'Unknown',
                                 selectedBarangay: widget.selectedBarangay,

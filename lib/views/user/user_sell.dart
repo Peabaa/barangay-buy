@@ -10,6 +10,7 @@ import 'home.dart';
 import 'user_announcements.dart';
 import 'user_profile.dart';
 import 'home_header_footer.dart';
+import 'search_results.dart';
 
 class UserSell extends StatefulWidget {
   const UserSell({super.key});
@@ -237,6 +238,23 @@ class _UserSellState extends State<UserSell> {
                   relHeight: relHeight,
                   selectedBarangay: selectedBarangay,
                   onNotificationTap: () {},
+                  onSearchChanged: (query) {
+                    // For immediate search feedback, could add setState here if needed
+                  },
+                  onSearchSubmitted: (query) {
+                    if (query.trim().isNotEmpty) {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => SearchResults(
+                            searchQuery: query,
+                            barangay: selectedBarangay,
+                            relWidth: relWidth,
+                            relHeight: relHeight,
+                          ),
+                        ),
+                      );
+                    }
+                  },
                 ),
               ),
             ),

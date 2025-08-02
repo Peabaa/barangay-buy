@@ -8,6 +8,7 @@ import 'user_posted_announcement.dart';
 import 'user_sell.dart';
 import 'user_profile.dart';
 import 'home_header_footer.dart';
+import 'search_results.dart';
 class UserAnnouncements extends StatefulWidget {
   const UserAnnouncements({super.key});
 
@@ -17,6 +18,7 @@ class UserAnnouncements extends StatefulWidget {
 
 class _UserAnnouncementsState extends State<UserAnnouncements> {
   String selectedBarangay = '';
+  String _searchQuery = '';
   Future<List<Map<String, dynamic>>>? _announcementsFuture;
 
   @override
@@ -140,6 +142,25 @@ class _UserAnnouncementsState extends State<UserAnnouncements> {
                 relHeight: relHeight,
                 selectedBarangay: selectedBarangay,
                 onNotificationTap: () {},
+                onSearchChanged: (query) {
+                  setState(() {
+                    _searchQuery = query.toLowerCase();
+                  });
+                },
+                onSearchSubmitted: (query) {
+                  if (query.trim().isNotEmpty) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => SearchResults(
+                          searchQuery: query,
+                          barangay: selectedBarangay,
+                          relWidth: relWidth,
+                          relHeight: relHeight,
+                        ),
+                      ),
+                    );
+                  }
+                },
               ),
             ),
           ),
@@ -230,13 +251,55 @@ class _UserAnnouncementsState extends State<UserAnnouncements> {
                                 );
                               }
                               final announcements = snapshot.data!;
+                              
+                              // Filter announcements based on search query
+                              final filteredAnnouncements = announcements.where((announcement) {
+                                if (_searchQuery.isEmpty) return true;
+                                final text = (announcement['text'] ?? '').toString().toLowerCase();
+                                final username = (announcement['username'] ?? '').toString().toLowerCase();
+                                return text.contains(_searchQuery) || username.contains(_searchQuery);
+                              }).toList();
+                              
+                              if (filteredAnnouncements.isEmpty && _searchQuery.isNotEmpty) {
+                                return Align(
+                                  alignment: Alignment.topCenter,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      SizedBox(height: relHeight(50)),
+                                      Icon(
+                                        Icons.search_off,
+                                        size: relWidth(80),
+                                        color: const Color(0x88888888),
+                                      ),
+                                      SizedBox(height: relHeight(20)),
+                                      Container(
+                                        width: relWidth(249),
+                                        height: relHeight(26),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          'No announcements found',
+                                          style: TextStyle(
+                                            fontFamily: 'Roboto',
+                                            fontSize: relWidth(16),
+                                            fontWeight: FontWeight.w500,
+                                            color: const Color(0x88888888),
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                              
                               return RefreshIndicator(
                                 onRefresh: _refreshAnnouncements,
                                 child: ListView.builder(
                                   padding: EdgeInsets.only(top: relHeight(10), right: relWidth(20)),
-                                  itemCount: announcements.length,
+                                  itemCount: filteredAnnouncements.length,
                                   itemBuilder: (context, index) {
-                                    final data = announcements[index];
+                                    final data = filteredAnnouncements[index];
                                     return Center(
                                       child: UserPostedAnnouncement(
                                         text: data['text'] ?? '',

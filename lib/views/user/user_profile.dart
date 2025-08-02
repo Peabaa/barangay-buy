@@ -8,6 +8,7 @@ import 'home.dart';
 import 'user_announcements.dart';
 import 'user_sell.dart';
 import 'home_header_footer.dart';
+import 'search_results.dart';
 import '../login_signup.dart';
 
 class UserProfile extends StatefulWidget {
@@ -21,6 +22,7 @@ class _UserProfileState extends State<UserProfile> {
   String selectedBarangay = '';
   String username = '';
   String email = '';
+  String _searchQuery = '';
   final List<String> barangayList = [
     'Banilad',
     'Bulacao',
@@ -100,6 +102,25 @@ class _UserProfileState extends State<UserProfile> {
                   relHeight: relHeight,
                   selectedBarangay: selectedBarangay,
                   onNotificationTap: () {},
+                  onSearchChanged: (query) {
+                    setState(() {
+                      _searchQuery = query.toLowerCase();
+                    });
+                  },
+                  onSearchSubmitted: (query) {
+                    if (query.trim().isNotEmpty) {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => SearchResults(
+                            searchQuery: query,
+                            barangay: selectedBarangay,
+                            relWidth: relWidth,
+                            relHeight: relHeight,
+                          ),
+                        ),
+                      );
+                    }
+                  },
                 ),
               ),
             ),
@@ -383,6 +404,42 @@ class _UserProfileState extends State<UserProfile> {
                             );
                           }
                           final products = snapshot.data!.docs;
+                          
+                          // Filter products based on search query
+                          final filteredProducts = products.where((doc) {
+                            if (_searchQuery.isEmpty) return true;
+                            final data = doc.data() as Map<String, dynamic>;
+                            final productName = (data['productName'] ?? '').toString().toLowerCase();
+                            final category = (data['category'] ?? '').toString().toLowerCase();
+                            return productName.contains(_searchQuery) || category.contains(_searchQuery);
+                          }).toList();
+                          
+                          if (filteredProducts.isEmpty && _searchQuery.isNotEmpty) {
+                            return Center(
+                              child: Column(
+                                children: [
+                                  SizedBox(height: relHeight(20)),
+                                  Icon(
+                                    Icons.search_off,
+                                    size: relWidth(60),
+                                    color: const Color(0x88888888),
+                                  ),
+                                  SizedBox(height: relHeight(10)),
+                                  Text(
+                                    'No products found for "$_searchQuery"',
+                                    style: TextStyle(
+                                      fontFamily: 'RobotoCondensed',
+                                      fontSize: relWidth(16),
+                                      fontWeight: FontWeight.w500,
+                                      color: const Color(0x88888888),
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+                          
                           return GridView.count(
                             crossAxisCount: 2,
                             shrinkWrap: true,
@@ -390,7 +447,7 @@ class _UserProfileState extends State<UserProfile> {
                             crossAxisSpacing: relWidth(10),
                             childAspectRatio: 1.0,
                             physics: NeverScrollableScrollPhysics(),
-                            children: products.map((doc) {
+                            children: filteredProducts.map((doc) {
                               final data = doc.data() as Map<String, dynamic>;
                               return Stack(
                                 children: [
@@ -662,6 +719,42 @@ class _UserProfileState extends State<UserProfile> {
                                 ));
                               }
                               final favProducts = snapshot.data!.docs;
+                              
+                              // Filter favorite products based on search query
+                              final filteredFavProducts = favProducts.where((doc) {
+                                if (_searchQuery.isEmpty) return true;
+                                final data = doc.data() as Map<String, dynamic>;
+                                final productName = (data['productName'] ?? '').toString().toLowerCase();
+                                final category = (data['category'] ?? '').toString().toLowerCase();
+                                return productName.contains(_searchQuery) || category.contains(_searchQuery);
+                              }).toList();
+                              
+                              if (filteredFavProducts.isEmpty && _searchQuery.isNotEmpty) {
+                                return Center(
+                                  child: Column(
+                                    children: [
+                                      SizedBox(height: relHeight(20)),
+                                      Icon(
+                                        Icons.search_off,
+                                        size: relWidth(60),
+                                        color: const Color(0x88888888),
+                                      ),
+                                      SizedBox(height: relHeight(10)),
+                                      Text(
+                                        'No favorite products found for "$_searchQuery"',
+                                        style: TextStyle(
+                                          fontFamily: 'RobotoCondensed',
+                                          fontSize: relWidth(16),
+                                          fontWeight: FontWeight.w500,
+                                          color: const Color(0x88888888),
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                              
                               return GridView.count(
                                 crossAxisCount: 2,
                                 shrinkWrap: true,
@@ -669,7 +762,7 @@ class _UserProfileState extends State<UserProfile> {
                                 crossAxisSpacing: relWidth(10),
                                 childAspectRatio: 0.97,
                                 physics: NeverScrollableScrollPhysics(),
-                                children: favProducts.map((doc) {
+                                children: filteredFavProducts.map((doc) {
                                   final data = doc.data() as Map<String, dynamic>;
                                   return Padding(
                                     padding: EdgeInsets.symmetric(vertical: relHeight(2), horizontal: relWidth(2)),
