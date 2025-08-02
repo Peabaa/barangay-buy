@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../controllers/auth_controller.dart';
-import 'select_barangay.dart';
-import 'user/home.dart';
-import 'admin/admin_announcements.dart';
+import '../controllers/login_signup_controller.dart';
+import '../models/login_signup_model.dart';
 
 class LoginScreen extends StatefulWidget {
   final bool isLogin;
@@ -19,9 +16,47 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController = TextEditingController();
+  
+  late LoginSignupModel _model;
+
+  @override
+  void initState() {
+    super.initState();
+    _model = LoginSignupModel(isLogin: widget.isLogin);
+    
+    // Add listeners to update model when text changes
+    usernameController.addListener(_updateModel);
+    emailController.addListener(_updateModel);
+    passwordController.addListener(_updateModel);
+    confirmPasswordController.addListener(_updateModel);
+  }
+
+  void _updateModel() {
+    setState(() {
+      _model = LoginSignupController.updateForm(
+        currentModel: _model,
+        username: usernameController.text,
+        email: emailController.text,
+        password: passwordController.text,
+        confirmPassword: confirmPasswordController.text,
+      );
+    });
+  }
+
+  void _clearControllers() {
+    usernameController.clear();
+    emailController.clear();
+    passwordController.clear();
+    confirmPasswordController.clear();
+  }
 
   @override
   void dispose() {
+    usernameController.removeListener(_updateModel);
+    emailController.removeListener(_updateModel);
+    passwordController.removeListener(_updateModel);
+    confirmPasswordController.removeListener(_updateModel);
+    
     usernameController.dispose();
     emailController.dispose();
     passwordController.dispose();
@@ -36,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
     double relWidth(double dp) => screenWidth * (dp / 412);
     double relHeight(double dp) => screenHeight * (dp / 915);
 
-    final isLogin = widget.isLogin;
+    final isLogin = _model.isLogin;
 
     return Scaffold(
       body: Stack(
@@ -162,12 +197,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                 Expanded(
                                   child: GestureDetector(
                                     onTap: () {
-                                      if (isLogin) {
-                                        Navigator.of(context).pushReplacement(
-                                          MaterialPageRoute(
-                                            builder: (_) => LoginScreen(isLogin: false),
-                                          ),
-                                        );
+                                      if (_model.isLogin) {
+                                        setState(() {
+                                          _model = LoginSignupController.toggleMode(_model);
+                                          _clearControllers();
+                                        });
                                       }
                                     },
                                     child: Container(
@@ -193,12 +227,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                 Expanded(
                                   child: GestureDetector(
                                     onTap: () {
-                                      if (!isLogin) {
-                                        Navigator.of(context).pushReplacement(
-                                          MaterialPageRoute(
-                                            builder: (_) => LoginScreen(isLogin: true),
-                                          ),
-                                        );
+                                      if (!_model.isLogin) {
+                                        setState(() {
+                                          _model = LoginSignupController.toggleMode(_model);
+                                          _clearControllers();
+                                        });
                                       }
                                     },
                                     child: Container(
@@ -232,38 +265,14 @@ class _LoginScreenState extends State<LoginScreen> {
                               padding: EdgeInsets.symmetric(horizontal: relWidth(30)),
                               child: TextField(
                                 controller: emailController,
-                                decoration: InputDecoration(
+                                decoration: LoginSignupController.getTextFieldDecoration(
                                   hintText: 'Email Address',
-                                  hintStyle: TextStyle(
-                                    fontFamily: 'RobotoCondensed',
-                                    fontSize: relWidth(16),
-                                    color: const Color(0xFFD0D0D0).withOpacity(0.8),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  filled: true,
-                                  fillColor: Colors.white.withOpacity(0.8),
-                                  contentPadding: EdgeInsets.symmetric(vertical: relHeight(2), horizontal: relWidth(20)),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(relWidth(23)),
-                                    borderSide: BorderSide(
-                                      color: Color(0xFFA22304),
-                                      width: relWidth(1),
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(relWidth(23)),
-                                    borderSide: BorderSide(
-                                      color: Color(0xFFA22304),
-                                      width: relWidth(3),
-                                    ),
-                                  ),
-                                ),
-                                style: TextStyle(
-                                  fontFamily: 'RobotoCondensed',
                                   fontSize: relWidth(16),
-                                  color: Color(0xFFA22304),
-                                  fontWeight: FontWeight.bold,
+                                  borderRadius: relWidth(23),
+                                  borderWidth: relWidth(1),
+                                  focusedBorderWidth: relWidth(3),
                                 ),
+                                style: LoginSignupController.getTextFieldStyle(relWidth(16)),
                                 keyboardType: TextInputType.emailAddress,
                               ),
                             ),
@@ -274,38 +283,14 @@ class _LoginScreenState extends State<LoginScreen> {
                               child: TextField(
                                 controller: passwordController,
                                 obscureText: true,
-                                decoration: InputDecoration(
+                                decoration: LoginSignupController.getTextFieldDecoration(
                                   hintText: 'Password',
-                                  hintStyle: TextStyle(
-                                    fontFamily: 'RobotoCondensed',
-                                    fontSize: relWidth(16),
-                                    color: const Color(0xFFD0D0D0).withOpacity(0.8),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  filled: true,
-                                  fillColor: Colors.white.withOpacity(0.8),
-                                  contentPadding: EdgeInsets.symmetric(vertical: relHeight(1), horizontal: relWidth(20)),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(relWidth(23)),
-                                    borderSide: BorderSide(
-                                      color: Color(0xFFA22304),
-                                      width: relWidth(1),
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(relWidth(23)),
-                                    borderSide: BorderSide(
-                                      color: Color(0xFFA22304),
-                                      width: relWidth(3),
-                                    ),
-                                  ),
-                                ),
-                                style: TextStyle(
-                                  fontFamily: 'RobotoCondensed',
                                   fontSize: relWidth(16),
-                                  color: Color(0xFFA22304),
-                                  fontWeight: FontWeight.bold,
+                                  borderRadius: relWidth(23),
+                                  borderWidth: relWidth(1),
+                                  focusedBorderWidth: relWidth(3),
                                 ),
+                                style: LoginSignupController.getTextFieldStyle(relWidth(16)),
                               ),
                             ),
                             SizedBox(height: relHeight(14)),
@@ -318,55 +303,26 @@ class _LoginScreenState extends State<LoginScreen> {
                                   SizedBox(
                                     width: relWidth(145),
                                     child: ElevatedButton(
-                                      onPressed: () async {
-                                        final email = emailController.text.trim();
-                                        final password = passwordController.text.trim();
-                                        if (email.isEmpty || password.isEmpty) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Please enter email and password.')),
-                                          );
-                                          return;
-                                        }
-                                        final authController = AuthController();
-                                        final result = await authController.login(
-                                          email: email,
-                                          password: password,
+                                      onPressed: _model.isLoading ? null : () async {
+                                        final result = await LoginSignupController.handleLogin(
+                                          model: _model,
                                           context: context,
                                         );
-                                        if (result != null) {
-                                          final uid = result.user?.uid;
-                                          if (uid != null) {
-                                            final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
-                                            final role = doc.data()?['role'];
-                                            final barangay = doc.data()?['barangay'] ?? 'N/A'; 
-                                            if (role == 'admin') {
-                                              Navigator.of(context).pushReplacement(
-                                                MaterialPageRoute(
-                                                  builder: (context) => AdminAnnouncements(selectedBarangay: barangay),
-                                                ),
-                                              );
-                                            } else {
-                                              Navigator.of(context).pushReplacement(
-                                                MaterialPageRoute(builder: (_) => HomePage()),
-                                              );
-                                            }
-                                          }
-                                        }
+                                        setState(() {
+                                          _model = result;
+                                        });
                                       },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Color(0xFFA22304),
-                                        foregroundColor: Colors.white,
-                                        textStyle: TextStyle(
-                                          fontFamily: 'RobotoCondensed',
-                                          fontSize: relWidth(20),
-                                          fontWeight: FontWeight.bold,
-                                          fontStyle: FontStyle.italic,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(relWidth(23)),
-                                        ),
-                                      ),
-                                      child: Text('Login'),
+                                      style: LoginSignupController.getPrimaryButtonStyle(relWidth(23)),
+                                      child: _model.isLoading 
+                                        ? const SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                            ),
+                                          )
+                                        : const Text('Login'),
                                     ),
                                   ),
                                   // Cancel Button
@@ -377,19 +333,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       onPressed: () {
                                         Navigator.of(context).pop();
                                       },
-                                      style: OutlinedButton.styleFrom(
-                                        backgroundColor: Colors.white,
-                                        foregroundColor: Color(0xFFA22304),
-                                        side: BorderSide(color: Color(0xFFA22304), width: relWidth(2)),
-                                        textStyle: TextStyle(
-                                          fontFamily: 'RobotoCondensed',
-                                          fontSize: relWidth(22),
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(relWidth(23)),
-                                        ),
-                                      ),
+                                      style: LoginSignupController.getCancelButtonStyle(relWidth(23), relWidth(2)),
                                       child: Text('Cancel'),
                                     ),
                                   ),
@@ -573,59 +517,26 @@ class _LoginScreenState extends State<LoginScreen> {
                                   SizedBox(
                                     width: 145,
                                     child: ElevatedButton(
-                                      onPressed: () async {
-                                        final username = usernameController.text.trim();
-                                        final email = emailController.text.trim();
-                                        final password = passwordController.text.trim();
-                                        final confirmPassword = confirmPasswordController.text.trim();
-
-                                        if (username.isEmpty || email.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Please fill in all fields.')),
-                                          );
-                                          return;
-                                        }
-                                        if (password != confirmPassword) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Passwords do not match.')),
-                                          );
-                                          return;
-                                        }
-
-                                        final authController = AuthController();
-                                        final result = await authController.signUp(
-                                          email: email,
-                                          password: password,
-                                          fullName: username,
-                                          phone: '', // No phone field
+                                      onPressed: _model.isLoading ? null : () async {
+                                        final result = await LoginSignupController.handleSignup(
+                                          model: _model,
                                           context: context,
                                         );
-                                        if (result != null) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Sign up successful!')),
-                                          );
-                                          // Navigate to Select Barangay Screen
-                                          Navigator.of(context).pushReplacement(
-                                            MaterialPageRoute(
-                                              builder: (_) => SelectBarangay(),
-                                            ),
-                                          );
-                                        }
+                                        setState(() {
+                                          _model = result;
+                                        });
                                       },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(0xFFA22304),
-                                        foregroundColor: Colors.white,
-                                        textStyle: const TextStyle(
-                                          fontFamily: 'RobotoCondensed',
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold,
-                                          fontStyle: FontStyle.italic,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(23),
-                                        ),
-                                      ),
-                                      child: const Text('Sign Up'),
+                                      style: LoginSignupController.getPrimaryButtonStyle(23),
+                                      child: _model.isLoading
+                                        ? const SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                            ),
+                                          )
+                                        : const Text('Sign Up'),
                                     ),
                                   ),
                                   // Cancel Button
@@ -636,19 +547,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                       onPressed: () {
                                         Navigator.of(context).pop();
                                       },
-                                      style: OutlinedButton.styleFrom(
-                                        backgroundColor: Colors.white,
-                                        foregroundColor: const Color(0xFFA22304),
-                                        side: BorderSide(color: Color(0xFFA22304), width: relWidth(2)),
-                                        textStyle: TextStyle(
-                                          fontFamily: 'RobotoCondensed',
-                                          fontSize: relWidth(22),
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(relWidth(23)),
-                                        ),
-                                      ),
+                                      style: LoginSignupController.getCancelButtonStyle(relWidth(23), relWidth(2)),
                                       child: const Text('Cancel'),
                                     ),
                                   ),
