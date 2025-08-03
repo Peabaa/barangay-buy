@@ -1,16 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'dart:convert';
-
-import 'home.dart';
-import 'user_announcements.dart';
-import 'user_profile.dart';
 import 'home_header_footer.dart';
-import 'search_results.dart';
+import '../../controllers/user_sell_controller.dart';
 
 class UserSell extends StatefulWidget {
   const UserSell({super.key});
@@ -20,14 +11,8 @@ class UserSell extends StatefulWidget {
 }
 
 class _UserSellState extends State<UserSell> {
-  bool get _isFormComplete {
-    return _productNameController.text.trim().isNotEmpty &&
-        _priceController.text.trim().isNotEmpty &&
-        double.tryParse(_priceController.text.trim()) != null &&
-        double.parse(_priceController.text.trim()) > 0 &&
-        selectedCategory != null &&
-        _descriptionController.text.trim().isNotEmpty;
-  }
+  final UserSellController _controller = UserSellController();
+  
   String selectedBarangay = '';
   String? selectedCategory;
   File? _productImage;
@@ -40,12 +25,20 @@ class _UserSellState extends State<UserSell> {
   // Loading state
   bool _isSubmitting = false;
 
+  bool get _isFormComplete {
+    return _controller.isFormComplete(
+      productName: _productNameController.text,
+      price: _priceController.text,
+      category: selectedCategory,
+      description: _descriptionController.text,
+    );
+  }
+
   Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
+    final image = await _controller.pickImage();
+    if (image != null) {
       setState(() {
-        _productImage = File(pickedFile.path);
+        _productImage = image;
       });
     }
   }
@@ -64,124 +57,32 @@ class _UserSellState extends State<UserSell> {
     super.dispose();
   }
 
-  Future<String?> _convertImageToBase64(File imageFile) async {
-    try {
-      final bytes = await imageFile.readAsBytes();
-      return base64Encode(bytes);
-    } catch (e) {
-      print('Error converting image to Base64: $e');
-      return null;
-    }
-  }
-
   Future<void> _fetchBarangay() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-      setState(() {
-        selectedBarangay = userDoc.data()?['barangay'] ?? '';
-      });
-    }
+    final barangay = await _controller.getCurrentUserBarangay();
+    setState(() {
+      selectedBarangay = barangay;
+    });
   }
 
   Future<void> _submitProduct() async {
-    // Validate form
-    if (_productNameController.text.trim().isEmpty) {
-      _showSnackBar('Please enter a product name');
-      return;
-    }
-    
-    if (_priceController.text.trim().isEmpty) {
-      _showSnackBar('Please enter a product price');
-      return;
-    }
-    
-    final price = double.tryParse(_priceController.text.trim());
-    if (price == null || price <= 0) {
-      _showSnackBar('Please enter a valid price');
-      return;
-    }
-    
-    if (selectedCategory == null) {
-      _showSnackBar('Please select a category');
-      return;
-    }
-    
-    if (_descriptionController.text.trim().isEmpty) {
-      _showSnackBar('Please enter a product description');
-      return;
-    }
-
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      _showSnackBar('User not logged in');
-      return;
-    }
-
     setState(() {
       _isSubmitting = true;
     });
 
     try {
-      // Get user information
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-      
-      final username = userDoc.data()?['username'] ?? user.email ?? 'Unknown';
+      await _controller.submitProduct(
+        productName: _productNameController.text,
+        price: _priceController.text,
+        category: selectedCategory,
+        description: _descriptionController.text,
+        barangay: selectedBarangay,
+        productImage: _productImage,
+      );
 
-      // Convert image to Base64 if image exists
-      String? imageBase64;
-      if (_productImage != null) {
-        imageBase64 = await _convertImageToBase64(_productImage!);
-        if (imageBase64 == null) {
-          _showSnackBar('Error processing image. Please try again.');
-          setState(() {
-            _isSubmitting = false;
-          });
-          return;
-        }
-      }
-
-      // Create product data with Base64 image
-      final productData = {
-        'productName': _productNameController.text.trim(),
-        'price': price,
-        'category': selectedCategory!,
-        'description': _descriptionController.text.trim(),
-        'barangay': selectedBarangay,
-        'sellerName': username,
-        'sellerEmail': user.email,
-        'sellerId': user.uid,
-        'timestamp': FieldValue.serverTimestamp(),
-        'status': 'active', // active, sold, inactive
-        'hasImage': _productImage != null,
-        'imageBase64': imageBase64, // Store Base64 encoded image
-      };
-
-      // Add to user's products collection
-      final userProductRef = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .collection('products')
-          .add(productData);
-
-      final globalProductRef = await FirebaseFirestore.instance
-          .collection('products')
-          .add(productData);
-
-      await userProductRef.update({'productId': globalProductRef.id});
-      await globalProductRef.update({'productId': globalProductRef.id});
-
-      _showSnackBar('Product listed successfully!');
+      _controller.showSnackBar(context, 'Product listed successfully!');
       _clearForm();
-      
     } catch (e) {
-      _showSnackBar('Error listing product: ${e.toString()}');
+      _controller.showSnackBar(context, 'Error listing product: ${e.toString()}');
     } finally {
       setState(() {
         _isSubmitting = false;
@@ -199,15 +100,6 @@ class _UserSellState extends State<UserSell> {
     });
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: const Color(0xFF611A04),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -215,12 +107,7 @@ class _UserSellState extends State<UserSell> {
     double relWidth(double dp) => screenWidth * (dp / 412);
     double relHeight(double dp) => screenHeight * (dp / 915);
 
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Color(0xFFFF5B29),
-        statusBarIconBrightness: Brightness.dark,
-      ),
-    );
+    _controller.setSystemUIOverlayStyle();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -237,23 +124,20 @@ class _UserSellState extends State<UserSell> {
                   relWidth: relWidth,
                   relHeight: relHeight,
                   selectedBarangay: selectedBarangay,
-                  onNotificationTap: () {},
+                  onNotificationTap: () {
+                    _controller.handleNotificationTap();
+                  },
                   onSearchChanged: (query) {
                     // For immediate search feedback, could add setState here if needed
                   },
                   onSearchSubmitted: (query) {
-                    if (query.trim().isNotEmpty) {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => SearchResults(
-                            searchQuery: query,
-                            barangay: selectedBarangay,
-                            relWidth: relWidth,
-                            relHeight: relHeight,
-                          ),
-                        ),
-                      );
-                    }
+                    _controller.navigateToSearchResults(
+                      context,
+                      query,
+                      selectedBarangay,
+                      relWidth,
+                      relHeight,
+                    );
                   },
                 ),
               ),
@@ -457,14 +341,7 @@ class _UserSellState extends State<UserSell> {
                                     Icons.keyboard_arrow_down,
                                     color: const Color(0xFF611A04),
                                   ),
-                                  items: [
-                                    'Fashion',
-                                    'Electronics',
-                                    'Home Living',
-                                    'Health & Beauty',
-                                    'Groceries',
-                                    'Entertainment',
-                                  ].map((String value) {
+                                  items: _controller.getCategories().map((String value) {
                                     return DropdownMenuItem<String>(
                                       value: value,
                                       child: Text(value),
@@ -596,32 +473,16 @@ class _UserSellState extends State<UserSell> {
         relWidth: relWidth,
         relHeight: relHeight,
         onStoreTap: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const HomePage(),
-            ),
-          );
+          _controller.navigateToHome(context);
         },
         onAnnouncementTap: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const UserAnnouncements(),
-            ),
-          );
+          _controller.navigateToAnnouncements(context);
         },
         onSellTap: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const UserSell(),
-            ),
-          );
+          _controller.navigateToSell(context);
         },
         onProfileTap: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const UserProfile(),
-            ),
-          );
+          _controller.navigateToProfile(context);
         },
         activeTab: 'sell',
       ),
