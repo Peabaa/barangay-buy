@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
+import '../controllers/splash_screen_controller.dart';
+import '../models/splash_screen_model.dart';
 
 class SplashScreen extends StatefulWidget {
   final Widget nextScreen;
@@ -10,22 +11,23 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  late SplashScreenModel _model;
+
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 3), () {
-      Navigator.of(context).pushReplacement(
-        PageRouteBuilder(
-          pageBuilder: (_, __, ___) => widget.nextScreen,
-          transitionsBuilder: (_, animation, __, child) {
-            return FadeTransition(
-              opacity: animation,
-              child: child,
-            );
-          },
-          transitionDuration: const Duration(milliseconds: 800),
-        ),
-      );
+    _model = SplashScreenModel(nextScreen: widget.nextScreen);
+    
+    SplashScreenController.startSplashTimer(
+      context: context,
+      model: _model,
+      onModelUpdate: _updateModel,
+    );
+  }
+
+  void _updateModel(SplashScreenModel newModel) {
+    setState(() {
+      _model = newModel;
     });
   }
 
@@ -34,66 +36,26 @@ class _SplashScreenState extends State<SplashScreen> {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     
-    double relWidth(double dp) => screenWidth * (dp / 412);
-    double relHeight(double dp) => screenHeight * (dp / 915);
+    double relWidth(double dp) => SplashScreenController.getRelativeWidth(screenWidth, dp);
+    double relHeight(double dp) => SplashScreenController.getRelativeHeight(screenHeight, dp);
 
-    return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          Image.asset(
-            'assets/images/background.png',
-            fit: BoxFit.cover,
-          ),
-          Center(
-            child: SingleChildScrollView(
-              child: Container(
-                margin: EdgeInsets.symmetric(horizontal: relWidth(32)),
-                padding: EdgeInsets.all(relWidth(16)),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      'assets/images/Logo.png',
-                      height: relHeight(130),
-                    ),
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Text( 
-                          'BarangayBuy',
-                          style: TextStyle(
-                            fontFamily: 'SofiaSansCondensed',
-                            fontSize: relWidth(63),
-                            foreground: (Paint()
-                              ..style = PaintingStyle.stroke
-                              ..strokeWidth = 2
-                              ..color = Colors.white), 
-                            shadows: [
-                              Shadow(
-                                color: Colors.black26,
-                                offset: Offset(relWidth(3), relHeight(5)),
-                                blurRadius: relWidth(12),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Text( 
-                          'BarangayBuy',
-                          style: TextStyle(
-                            fontFamily: 'SofiaSansCondensed',
-                            fontSize: relWidth(63),
-                            color: Color(0xFFA22304),
-                          )
-                        ),
-                      ],
-                    ),
-                  ]
-                ),
-              ),
+    return SplashScreenController.buildSplashScaffold(
+      backgroundImage: SplashScreenController.getBackgroundImage(),
+      content: Container(
+        margin: SplashScreenController.getContainerMargin(relWidth(32)),
+        padding: SplashScreenController.getContainerPadding(relWidth(16)),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SplashScreenController.getLogoImage(relHeight(130)),
+            SplashScreenController.getTitleText(
+              title: 'BarangayBuy',
+              fontSize: relWidth(63),
+              relWidth: relWidth(3),
+              relHeight: relHeight(5),
             ),
-          ),
-        ]
+          ],
+        ),
       ),
     );
   }
