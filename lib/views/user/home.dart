@@ -1,16 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'product_card.dart';
-
 import 'home_header_footer.dart';
-import 'user_announcements.dart';
-import 'user_sell.dart';
-import 'user_profile.dart';
-
-import 'category_products.dart';
-import 'search_results.dart';
+import '../../controllers/home_controller.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,6 +12,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final HomeController _controller = HomeController();
   String selectedBarangay = '';
   String searchQuery = '';
 
@@ -30,14 +23,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _fetchBarangay() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
+    final barangay = await _controller.getCurrentUserBarangay();
+    if (mounted) {
       setState(() {
-        selectedBarangay = userDoc.data()?['barangay'] ?? '';
+        selectedBarangay = barangay;
       });
     }
   }
@@ -49,12 +38,7 @@ class _HomePageState extends State<HomePage> {
     double relWidth(double dp) => screenWidth * (dp / 412);
     double relHeight(double dp) => screenHeight * (dp / 915);
 
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Color(0xFFFF5B29),
-        statusBarIconBrightness: Brightness.dark,
-      ),
-    );
+    _controller.setSystemUIOverlayStyle();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -70,26 +54,17 @@ class _HomePageState extends State<HomePage> {
                 relHeight: relHeight,
                 selectedBarangay: selectedBarangay,
                 onNotificationTap: () {
-                  print('Notification tapped');
+                  _controller.handleNotificationTap();
                 },
                 onSearchChanged: (query) {
-                  setState(() {
-                    searchQuery = query;
+                  _controller.handleSearchChanged(query, (newQuery) {
+                    setState(() {
+                      searchQuery = newQuery;
+                    });
                   });
                 },
                 onSearchSubmitted: (query) {
-                  if (query.trim().isNotEmpty) {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => SearchResults(
-                          searchQuery: query,
-                          barangay: selectedBarangay,
-                          relWidth: relWidth,
-                          relHeight: relHeight,
-                        ),
-                      ),
-                    );
-                  }
+                  _controller.handleSearchSubmitted(context, query, selectedBarangay, relWidth, relHeight);
                 },
               ),
             ),
@@ -134,21 +109,12 @@ class _HomePageState extends State<HomePage> {
                         physics: NeverScrollableScrollPhysics(),
                         children: [
                           // Category names
-                          ...["Fashion", "Electronics", "Home Living", "Health & Beauty", "Groceries", "Entertainment"].asMap().entries.map((entry) {
+                          ..._controller.getCategories().asMap().entries.map((entry) {
                             final i = entry.key;
                             final categoryName = entry.value;
                             return GestureDetector(
                               onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (context) => CategoryProducts(
-                                      category: categoryName,
-                                      barangay: selectedBarangay,
-                                      relWidth: relWidth,
-                                      relHeight: relHeight,
-                                    ),
-                                  ),
-                                );
+                                _controller.navigateToCategory(context, categoryName, selectedBarangay, relWidth, relHeight);
                               },
                               child: Container(
                                 decoration: BoxDecoration(
@@ -199,12 +165,7 @@ class _HomePageState extends State<HomePage> {
                     child: SizedBox(
                       width: double.infinity,
                       child: StreamBuilder<QuerySnapshot>(
-                        stream: selectedBarangay.isNotEmpty
-                            ? FirebaseFirestore.instance
-                                .collection('products')
-                                .where('barangay', isEqualTo: selectedBarangay)
-                                .snapshots()
-                            : FirebaseFirestore.instance.collection('products').snapshots(),
+                        stream: _controller.getProductsByBarangay(selectedBarangay),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState == ConnectionState.waiting) {
                             return Center(child: CircularProgressIndicator());
@@ -255,32 +216,10 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: HomeFooter(
         relWidth: relWidth,
         relHeight: relHeight,
-        onStoreTap: () {
-           Navigator.of(context).pushReplacement(
-             MaterialPageRoute(builder: (context) => const HomePage()),
-          );
-        },
-        onAnnouncementTap: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const UserAnnouncements(),
-            ),
-          );
-        },
-        onSellTap: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const UserSell(),
-            ),
-          );
-        },
-        onProfileTap: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const UserProfile(),
-            ),
-          );
-        },
+        onStoreTap: () => _controller.navigateToHome(context),
+        onAnnouncementTap: () => _controller.navigateToAnnouncements(context),
+        onSellTap: () => _controller.navigateToSell(context),
+        onProfileTap: () => _controller.navigateToProfile(context),
         activeTab: 'store',
       ),
     );
