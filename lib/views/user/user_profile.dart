@@ -1,15 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'product_card.dart';
-
-import 'home.dart';
-import 'user_announcements.dart';
-import 'user_sell.dart';
 import 'home_header_footer.dart';
-import 'search_results.dart';
-import '../login_signup.dart';
+import '../../controllers/user_profile_controller.dart';
 
 class UserProfile extends StatefulWidget {
   const UserProfile({super.key});
@@ -19,57 +12,36 @@ class UserProfile extends StatefulWidget {
 }
 
 class _UserProfileState extends State<UserProfile> {
+  final UserProfileController _controller = UserProfileController();
   String selectedBarangay = '';
   String username = '';
   String email = '';
   String _searchQuery = '';
-  final List<String> barangayList = [
-    'Banilad',
-    'Bulacao',
-    'Day-as',
-    'Ermita',
-    'Guadalupe',
-    'Inayawan',
-    'Labangon',
-    'Lahug',
-    'Pari-an',
-    'Pasil'
-  ];
+  List<String> barangayList = [];
 
   @override
   void initState() {
     super.initState();
+    barangayList = _controller.getBarangayList();
     _fetchUserData();
   }
 
   Future<void> _fetchUserData() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
+    final userData = await _controller.getCurrentUserData();
+    if (userData != null) {
       setState(() {
-        selectedBarangay = userDoc.data()?['barangay'] ?? '';
-        username = userDoc.data()?['username'] ?? '';
-        email = userDoc.data()?['email'] ?? '';
+        selectedBarangay = userData['barangay'] ?? '';
+        username = userData['username'] ?? '';
+        email = userData['email'] ?? '';
       });
     }
   }
 
   Future<void> _saveChanges() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .update({
-        'barangay': selectedBarangay,
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Changes saved!')),
-      );
-    }
+    await _controller.updateUserBarangay(selectedBarangay);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Changes saved!')),
+    );
   }
 
   @override
@@ -79,12 +51,7 @@ class _UserProfileState extends State<UserProfile> {
     double relWidth(double dp) => screenWidth * (dp / 412);
     double relHeight(double dp) => screenHeight * (dp / 915);
 
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Color(0xFFFF5B29),
-        statusBarIconBrightness: Brightness.dark,
-      ),
-    );
+    _controller.setSystemUIOverlayStyle();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -101,25 +68,22 @@ class _UserProfileState extends State<UserProfile> {
                   relWidth: relWidth,
                   relHeight: relHeight,
                   selectedBarangay: selectedBarangay,
-                  onNotificationTap: () {},
+                  onNotificationTap: () {
+                    _controller.handleNotificationTap();
+                  },
                   onSearchChanged: (query) {
                     setState(() {
                       _searchQuery = query.toLowerCase();
                     });
                   },
                   onSearchSubmitted: (query) {
-                    if (query.trim().isNotEmpty) {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => SearchResults(
-                            searchQuery: query,
-                            barangay: selectedBarangay,
-                            relWidth: relWidth,
-                            relHeight: relHeight,
-                          ),
-                        ),
-                      );
-                    }
+                    _controller.navigateToSearchResults(
+                      context,
+                      query,
+                      selectedBarangay,
+                      relWidth,
+                      relHeight,
+                    );
                   },
                 ),
               ),
@@ -375,16 +339,7 @@ class _UserProfileState extends State<UserProfile> {
                     child: SizedBox(
                       width: double.infinity,
                       child: StreamBuilder<QuerySnapshot>(
-                        stream: (selectedBarangay.isNotEmpty
-                                ? FirebaseFirestore.instance
-                                    .collection('products')
-                                    .where('sellerId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
-                                    .where('barangay', isEqualTo: selectedBarangay)
-                                    .snapshots()
-                                : FirebaseFirestore.instance
-                                    .collection('products')
-                                    .where('sellerId', isEqualTo: FirebaseAuth.instance.currentUser?.uid)
-                                    .snapshots()),
+                        stream: _controller.getUserProductsStream(selectedBarangay.isNotEmpty ? selectedBarangay : null),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState == ConnectionState.waiting) {
                             return Center(child: CircularProgressIndicator());
@@ -406,13 +361,7 @@ class _UserProfileState extends State<UserProfile> {
                           final products = snapshot.data!.docs;
                           
                           // Filter products based on search query
-                          final filteredProducts = products.where((doc) {
-                            if (_searchQuery.isEmpty) return true;
-                            final data = doc.data() as Map<String, dynamic>;
-                            final productName = (data['productName'] ?? '').toString().toLowerCase();
-                            final category = (data['category'] ?? '').toString().toLowerCase();
-                            return productName.contains(_searchQuery) || category.contains(_searchQuery);
-                          }).toList();
+                          final filteredProducts = _controller.filterProducts(products, _searchQuery);
                           
                           if (filteredProducts.isEmpty && _searchQuery.isNotEmpty) {
                             return Center(
@@ -470,142 +419,13 @@ class _UserProfileState extends State<UserProfile> {
                                     right: 6,
                                     child: GestureDetector(
                                       onTap: () async {
-                                        final confirm = await showDialog<bool>(
-                                          context: context,
-                                          barrierDismissible: true,
-                                          builder: (context) => Center(
-                                            child: Material(
-                                              color: Colors.transparent,
-                                              child: Container(
-                                                width: relWidth(312),
-                                                height: relHeight(230),
-                                                decoration: BoxDecoration(
-                                                  color: const Color(0xFFF3F2F2),
-                                                  borderRadius: BorderRadius.circular(relWidth(3)),
-                                                  border: Border.all(
-                                                    color: const Color.fromRGBO(0, 0, 0, 0.22),
-                                                    width: 1,
-                                                  ),
-                                                ),
-                                                child: Column(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                                  children: [
-                                                    Container(
-                                                      width: relWidth(215),
-                                                      height: relHeight(25),
-                                                      alignment: Alignment.center,
-                                                      margin: EdgeInsets.symmetric(vertical: relHeight(7)),
-                                                      child: Text(
-                                                        'Delete Listing',
-                                                        textAlign: TextAlign.center,
-                                                        style: TextStyle(
-                                                          color: const Color(0xFF611A04),
-                                                          fontFamily: 'Roboto',
-                                                          fontSize: relWidth(18),
-                                                          fontWeight: FontWeight.w700,
-                                                          fontStyle: FontStyle.normal,
-                                                          height: 1.17182,
-                                                          letterSpacing: 0.32,
-                                                          decoration: TextDecoration.none,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    Divider(
-                                                      color: const Color.fromRGBO(0, 0, 0, 0.22),
-                                                      thickness: 1,
-                                                      height: relHeight(16),
-                                                    ),
-                                                    Container(
-                                                      width: relWidth(232),
-                                                      height: relHeight(81),
-                                                      alignment: Alignment.center,
-                                                      child: Text(
-                                                        'Do you want to delete this product listing?',
-                                                        textAlign: TextAlign.center,
-                                                        style: TextStyle(
-                                                          color: const Color(0xFF611A04),
-                                                          fontFamily: 'Roboto',
-                                                          fontSize: relWidth(20),
-                                                          fontWeight: FontWeight.w700,
-                                                          fontStyle: FontStyle.normal,
-                                                          height: 1.17182,
-                                                          letterSpacing: 0.4,
-                                                          decoration: TextDecoration.none,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    SizedBox(height: relHeight(15)),
-                                                    Row(
-                                                      mainAxisAlignment: MainAxisAlignment.center,
-                                                      children: [
-                                                        GestureDetector(
-                                                          onTap: () {
-                                                            Navigator.of(context).pop(false);
-                                                          },
-                                                          child: Container(
-                                                            width: relWidth(90),
-                                                            height: relHeight(28),
-                                                            decoration: BoxDecoration(
-                                                              color: Colors.grey[300],
-                                                              borderRadius: BorderRadius.circular(relWidth(3)),
-                                                              border: Border.all(
-                                                                color: const Color(0xFF611A04),
-                                                                width: 1,
-                                                              ),
-                                                            ),
-                                                            alignment: Alignment.center,
-                                                            child: Text(
-                                                              'Cancel',
-                                                              style: TextStyle(
-                                                                color: const Color(0xFF611A04),
-                                                                fontFamily: 'Roboto',
-                                                                fontWeight: FontWeight.w700,
-                                                                fontSize: relWidth(16),
-                                                                decoration: TextDecoration.none,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        SizedBox(width: relWidth(16)),
-                                                        GestureDetector(
-                                                          onTap: () {
-                                                            Navigator.of(context).pop(true);
-                                                          },
-                                                          child: Container(
-                                                            width: relWidth(90),
-                                                            height: relHeight(28),
-                                                            decoration: BoxDecoration(
-                                                              color: Colors.red.withOpacity(0.8),
-                                                              borderRadius: BorderRadius.circular(relWidth(3)),
-                                                              border: Border.all(
-                                                                color: Colors.red,
-                                                                width: 1,
-                                                              ),
-                                                            ),
-                                                            alignment: Alignment.center,
-                                                            child: Text(
-                                                              'Delete',
-                                                              style: TextStyle(
-                                                                color: Colors.white,
-                                                                fontFamily: 'Roboto',
-                                                                fontWeight: FontWeight.w700,
-                                                                fontSize: relWidth(16),
-                                                                decoration: TextDecoration.none,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
+                                        final confirm = await _controller.showDeleteConfirmation(
+                                          context,
+                                          relWidth,
+                                          relHeight,
                                         );
                                         if (confirm == true) {
-                                          await FirebaseFirestore.instance.collection('products').doc(doc.id).delete();
+                                          await _controller.deleteProduct(doc.id);
                                           ScaffoldMessenger.of(context).showSnackBar(
                                             SnackBar(content: Text('Product deleted successfully!')),
                                           );
@@ -666,10 +486,7 @@ class _UserProfileState extends State<UserProfile> {
                     child: SizedBox(
                       width: double.infinity,
                       child: FutureBuilder<DocumentSnapshot>(
-                        future: FirebaseFirestore.instance
-                            .collection('users')
-                            .doc(FirebaseAuth.instance.currentUser?.uid)
-                            .get(),
+                        future: _controller.getUserFavorites(),
                         builder: (context, userSnapshot) {
                           if (userSnapshot.connectionState == ConnectionState.waiting) {
                             return Center(child: CircularProgressIndicator());
@@ -698,11 +515,7 @@ class _UserProfileState extends State<UserProfile> {
                             ));
                           }
                           return StreamBuilder<QuerySnapshot>(
-                            stream: FirebaseFirestore.instance
-                                .collection('products')
-                                .where('productId', whereIn: favorites.length > 10 ? favorites.sublist(0, 10) : favorites)
-                                .where('barangay', isEqualTo: selectedBarangay)
-                                .snapshots(),
+                            stream: _controller.getFavoriteProductsStream(favorites, selectedBarangay),
                             builder: (context, snapshot) {
                               if (snapshot.connectionState == ConnectionState.waiting) {
                                 return Center(child: CircularProgressIndicator());
@@ -721,13 +534,7 @@ class _UserProfileState extends State<UserProfile> {
                               final favProducts = snapshot.data!.docs;
                               
                               // Filter favorite products based on search query
-                              final filteredFavProducts = favProducts.where((doc) {
-                                if (_searchQuery.isEmpty) return true;
-                                final data = doc.data() as Map<String, dynamic>;
-                                final productName = (data['productName'] ?? '').toString().toLowerCase();
-                                final category = (data['category'] ?? '').toString().toLowerCase();
-                                return productName.contains(_searchQuery) || category.contains(_searchQuery);
-                              }).toList();
+                              final filteredFavProducts = _controller.filterProducts(favProducts, _searchQuery);
                               
                               if (filteredFavProducts.isEmpty && _searchQuery.isNotEmpty) {
                                 return Center(
@@ -804,116 +611,10 @@ class _UserProfileState extends State<UserProfile> {
                   Center(
                     child: GestureDetector(
                       onTap: () {
-                        showDialog(
-                          context: context,
-                          barrierDismissible: true,
-                          builder: (context) => Center(
-                            child: Material(
-                              color: Colors.transparent,
-                              child: Container(
-                                width: relWidth(312),
-                                height: relHeight(230),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF3F2F2),
-                                  borderRadius: BorderRadius.circular(relWidth(3)),
-                                  border: Border.all(
-                                    color: const Color.fromRGBO(0, 0, 0, 0.22),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      width: relWidth(215),
-                                      height: relHeight(25),
-                                      alignment: Alignment.center,
-                                      margin: EdgeInsets.symmetric(vertical: relHeight(7)),
-                                      child: Text(
-                                        'Log Out',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          color: const Color(0xFF611A04),
-                                          fontFamily: 'Roboto',
-                                          fontSize: relWidth(18),
-                                          fontWeight: FontWeight.w700,
-                                          fontStyle: FontStyle.normal,
-                                          height: 1.17182,
-                                          letterSpacing: 0.32,
-                                          decoration: TextDecoration.none,
-                                        ),
-                                      ),
-                                    ),
-                                    Divider(
-                                      color: const Color.fromRGBO(0, 0, 0, 0.22),
-                                      thickness: 1,
-                                      height: relHeight(16),
-                                    ),
-                                    Container(
-                                      width: relWidth(232),
-                                      height: relHeight(81),
-                                      alignment: Alignment.center,
-                                      child: Text(
-                                        'Do you want to log out?',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          color: const Color(0xFF611A04),
-                                          fontFamily: 'Roboto',
-                                          fontSize: relWidth(20),
-                                          fontWeight: FontWeight.w700,
-                                          fontStyle: FontStyle.normal,
-                                          height: 1.17182,
-                                          letterSpacing: 0.4,
-                                          decoration: TextDecoration.none,
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(height: relHeight(15)),
-                                    GestureDetector(
-                                      onTap: () async {
-                                        Navigator.of(context).pop();
-                                        try {
-                                          await FirebaseAuth.instance.signOut();
-                                        } catch (e) {}
-                                        if (context.mounted) {
-                                          Navigator.of(context).pushAndRemoveUntil(
-                                            MaterialPageRoute(
-                                              builder: (context) => LoginSignupScreen(),
-                                            ),
-                                            (route) => false,
-                                          );
-                                        }
-                                      },
-                                      child: Container(
-                                        width: relWidth(133),
-                                        height: relHeight(28),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF611A04).withOpacity(0.8),
-                                          borderRadius: BorderRadius.circular(relWidth(3)),
-                                          border: Border.all(
-                                            color: const Color(0xFF611A04),
-                                            width: 1,
-                                          ),
-                                        ),
-                                        alignment: Alignment.center,
-                                        child: Text(
-                                          'Log Out',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontFamily: 'Roboto',
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: relWidth(16),
-                                            decoration: TextDecoration.none,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
+                        _controller.showLogoutConfirmation(
+                          context,
+                          relWidth,
+                          relHeight,
                         );
                       },
                       child: Container(
@@ -950,32 +651,16 @@ class _UserProfileState extends State<UserProfile> {
         relWidth: relWidth,
         relHeight: relHeight,
         onStoreTap: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const HomePage(),
-            ),
-          );
+          _controller.navigateToHome(context);
         },
         onAnnouncementTap: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const UserAnnouncements(),
-            ),
-          );
+          _controller.navigateToAnnouncements(context);
         },
         onSellTap: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const UserSell(),
-            ),
-          );
+          _controller.navigateToSell(context);
         },
         onProfileTap: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const UserProfile(),
-            ),
-          );
+          _controller.navigateToProfile(context);
         },
         activeTab: 'profile',
       ),
