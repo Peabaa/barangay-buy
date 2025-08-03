@@ -3,10 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'product_card.dart';
 import 'home_header_footer.dart';
-import 'home.dart';
-import 'user_announcements.dart';
-import 'user_sell.dart';
-import 'user_profile.dart';
+import '../../controllers/category_products_controller.dart';
 
 class CategoryProducts extends StatelessWidget {
   final String category;
@@ -24,6 +21,8 @@ class CategoryProducts extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final CategoryProductsController controller = CategoryProductsController();
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
@@ -40,13 +39,13 @@ class CategoryProducts extends StatelessWidget {
                     relWidth: relWidth,
                     relHeight: relHeight,
                     selectedBarangay: barangay,
-                    onNotificationTap: () {},
+                    onNotificationTap: controller.onNotificationTap,
                   ),
                   Positioned(
                     left: 0,
                     child: IconButton(
                       icon: const Icon(Icons.arrow_back, color: Colors.white),
-                      onPressed: () => Navigator.of(context).pop(),
+                      onPressed: () => controller.navigateBack(context),
                     ),
                   ),
                 ],
@@ -76,11 +75,7 @@ class CategoryProducts extends StatelessWidget {
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: relWidth(16), vertical: relHeight(16)),
               child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('products')
-                    .where('barangay', isEqualTo: barangay)
-                    .where('category', isEqualTo: category)
-                    .snapshots(),
+                stream: controller.getProductsByCategory(category, barangay),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
@@ -125,32 +120,10 @@ class CategoryProducts extends StatelessWidget {
       bottomNavigationBar: HomeFooter(
         relWidth: relWidth,
         relHeight: relHeight,
-        onStoreTap: () {
-           Navigator.of(context).pushReplacement(
-             MaterialPageRoute(builder: (context) => const HomePage()),
-          );
-        },
-        onAnnouncementTap: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const UserAnnouncements(),
-            ),
-          );
-        },
-        onSellTap: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const UserSell(),
-            ),
-          );
-        },
-        onProfileTap: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const UserProfile(),
-            ),
-          );
-        },
+        onStoreTap: () => controller.navigateToHome(context),
+        onAnnouncementTap: () => controller.navigateToAnnouncements(context),
+        onSellTap: () => controller.navigateToSell(context),
+        onProfileTap: () => controller.navigateToProfile(context),
         activeTab: 'store',
       ),
     );
