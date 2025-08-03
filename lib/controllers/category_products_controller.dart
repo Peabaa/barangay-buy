@@ -48,6 +48,6 @@ class CategoryProductsController {
   }
 
   void onNotificationTap() {
-    // Handle notification tap - can be implemented later
+    // Handle notification tap 
   }
 }
