@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../controllers/user_posted_announcement_controller.dart';
 
 // This widget is a simplified version of PostedAnnouncement without delete button
 class UserPostedAnnouncement extends StatelessWidget {
@@ -20,36 +21,25 @@ class UserPostedAnnouncement extends StatelessWidget {
     this.isAdmin = false,
   });
 
-  String _getFormattedTimestamp(Timestamp? timestamp) {
-    if (timestamp == null) return '';
-    try {
-      final dateUtc = timestamp.toDate();
-      final date = dateUtc.toLocal();
-      final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      final month = months[date.month - 1];
-      int hour = date.hour;
-      final minute = date.minute.toString().padLeft(2, '0');
-      final ampm = hour >= 12 ? 'PM' : 'AM';
-      hour = hour % 12;
-      if (hour == 0) hour = 12;
-      return '$month ${date.day}, ${date.year}, $hour:$minute $ampm';
-    } catch (e) {
-      return '';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final UserPostedAnnouncementController controller = UserPostedAnnouncementController();
+    final containerStyling = controller.getContainerStyling(relWidth, relHeight);
+    final usernameStyle = controller.getUsernameTextStyle(relWidth);
+    final timestampStyle = controller.getTimestampTextStyle(relWidth);
+    final announcementStyle = controller.getAnnouncementTextStyle(relWidth);
+    final adminBadgeStyle = controller.getAdminBadgeTextStyle(relWidth);
+    final adminBadgeStyling = controller.getAdminBadgeStyling(relWidth, relHeight);
+
     return Container(
-      width: relWidth(300),
-      margin: EdgeInsets.symmetric(vertical: relHeight(8)),
+      width: containerStyling['width'],
+      margin: EdgeInsets.symmetric(vertical: containerStyling['marginVertical']),
       decoration: BoxDecoration(
-        color: const Color(0xFFF3F2F2),
-        borderRadius: BorderRadius.circular(relWidth(3)),
+        color: controller.getContainerBackgroundColor(),
+        borderRadius: BorderRadius.circular(containerStyling['borderRadius']),
         border: Border.all(
-          color: const Color.fromRGBO(0, 0, 0, 0.22),
-          width: 1,
+          color: controller.getContainerBorderColor(),
+          width: containerStyling['borderWidth'],
         ),
       ),
       child: Column(
@@ -58,19 +48,19 @@ class UserPostedAnnouncement extends StatelessWidget {
           // Username and timestamp
           Padding(
             padding: EdgeInsets.only(
-              top: relHeight(16),
-              left: relWidth(10),
-              right: relWidth(7),
+              top: containerStyling['paddingTop'],
+              left: containerStyling['paddingLeft'],
+              right: containerStyling['paddingRight'],
             ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 CircleAvatar(
-                  radius: relHeight(14),
-                  backgroundImage: AssetImage('assets/images/UserCircle.png'),
+                  radius: containerStyling['avatarRadius'],
+                  backgroundImage: AssetImage(controller.getUserAvatarPath()),
                   backgroundColor: Colors.transparent,
                 ),
-                SizedBox(width: relWidth(3)),
+                SizedBox(width: containerStyling['spacingAfterAvatar']),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -79,50 +69,50 @@ class UserPostedAnnouncement extends StatelessWidget {
                         Text(
                           username,
                           style: TextStyle(
-                            color: const Color(0xFF611A04),
+                            color: controller.getUsernameTextColor(),
                             fontFamily: 'Roboto',
-                            fontSize: relWidth(15),
-                            fontWeight: FontWeight.w400,
-                            fontStyle: FontStyle.italic,
-                            letterSpacing: 0.5,
+                            fontSize: usernameStyle['fontSize'],
+                            fontWeight: usernameStyle['fontWeight'],
+                            fontStyle: usernameStyle['fontStyle'],
+                            letterSpacing: usernameStyle['letterSpacing'],
                           ),
                         ),
                         if (isAdmin) ...[
-                          SizedBox(width: relWidth(6)),
+                          SizedBox(width: containerStyling['adminBadgeSpacing']),
                           Container(
                             padding: EdgeInsets.symmetric(
-                              horizontal: relWidth(6),
-                              vertical: relHeight(2),
+                              horizontal: adminBadgeStyling['paddingHorizontal'],
+                              vertical: adminBadgeStyling['paddingVertical'],
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFF5B29),
-                              borderRadius: BorderRadius.circular(relWidth(8)),
+                              color: controller.getAdminBadgeBackgroundColor(),
+                              borderRadius: BorderRadius.circular(adminBadgeStyling['borderRadius']),
                             ),
                             child: Text(
                               'ADMIN',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: controller.getAdminBadgeTextColor(),
                                 fontFamily: 'Roboto',
-                                fontSize: relWidth(8),
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.3,
+                                fontSize: adminBadgeStyle['fontSize'],
+                                fontWeight: adminBadgeStyle['fontWeight'],
+                                letterSpacing: adminBadgeStyle['letterSpacing'],
                               ),
                             ),
                           ),
                         ],
                       ],
                     ),
-                    SizedBox(height: relHeight(2)),
+                    SizedBox(height: containerStyling['spacingAfterTimestamp']),
                     Text(
-                      _getFormattedTimestamp(timestamp),
+                      controller.getFormattedTimestamp(timestamp),
                       style: TextStyle(
-                        color: Color.fromRGBO(0, 0, 0, 0.31),
+                        color: controller.getTimestampTextColor(),
                         fontFamily: 'Roboto',
-                        fontSize: relWidth(10),
-                        fontStyle: FontStyle.italic,
-                        fontWeight: FontWeight.w400,
-                        height: 1.17164,
-                        letterSpacing: 0.2,
+                        fontSize: timestampStyle['fontSize'],
+                        fontStyle: timestampStyle['fontStyle'],
+                        fontWeight: timestampStyle['fontWeight'],
+                        height: timestampStyle['height'],
+                        letterSpacing: timestampStyle['letterSpacing'],
                       ),
                     ),
                   ],
@@ -130,23 +120,23 @@ class UserPostedAnnouncement extends StatelessWidget {
               ],
             ),
           ),
-          SizedBox(height: relHeight(9)),
+          SizedBox(height: containerStyling['spacingAfterHeader']),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: relWidth(14)),
+            padding: EdgeInsets.symmetric(horizontal: containerStyling['paddingHorizontal']),
             child: Text(
               text,
               style: TextStyle(
-                color: const Color(0xFF611A04),
+                color: controller.getAnnouncementTextColor(),
                 fontFamily: 'Roboto',
-                fontSize: relWidth(13),
-                fontWeight: FontWeight.w400,
-                fontStyle: FontStyle.normal,
-                height: 1.17176,
-                letterSpacing: 0.22,
+                fontSize: announcementStyle['fontSize'],
+                fontWeight: announcementStyle['fontWeight'],
+                fontStyle: announcementStyle['fontStyle'],
+                height: announcementStyle['height'],
+                letterSpacing: announcementStyle['letterSpacing'],
               ),
             ),
           ),
-          SizedBox(height: relHeight(12)),
+          SizedBox(height: containerStyling['paddingBottom']),
         ],
       ),
     );
