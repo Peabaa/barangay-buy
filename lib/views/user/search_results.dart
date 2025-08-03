@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'product_card.dart';
 import 'home_header_footer.dart';
+import '../../controllers/search_results_controller.dart';
 
 class SearchResults extends StatelessWidget {
   final String searchQuery;
@@ -19,6 +20,8 @@ class SearchResults extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final SearchResultsController controller = SearchResultsController();
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
@@ -34,8 +37,12 @@ class SearchResults extends StatelessWidget {
                     relWidth: relWidth,
                     relHeight: relHeight,
                     selectedBarangay: barangay,
-                    onNotificationTap: () {},
-                    onSearchChanged: (_) {},
+                    onNotificationTap: () {
+                      controller.handleNotificationTap();
+                    },
+                    onSearchChanged: (query) {
+                      controller.handleSearchChanged(query);
+                    },
                   ),
                 ),
                 Positioned(
@@ -44,7 +51,7 @@ class SearchResults extends StatelessWidget {
                   child: IconButton(
                     icon: Icon(Icons.arrow_back, color: Colors.white, size: relWidth(28)),
                     onPressed: () {
-                      Navigator.of(context).pop();
+                      controller.navigateBack(context);
                     },
                   ),
                 ),
@@ -77,12 +84,7 @@ class SearchResults extends StatelessWidget {
                 vertical: relHeight(10),
               ),
               child: StreamBuilder<QuerySnapshot>(
-                stream: barangay.isNotEmpty
-                    ? FirebaseFirestore.instance
-                        .collection('products')
-                        .where('barangay', isEqualTo: barangay)
-                        .snapshots()
-                    : FirebaseFirestore.instance.collection('products').snapshots(),
+                stream: controller.getProductsByBarangay(barangay),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
@@ -102,14 +104,8 @@ class SearchResults extends StatelessWidget {
                     );
                   }
                   final products = snapshot.data!.docs;
-                  final filteredProducts = searchQuery.trim().isEmpty
-                      ? products
-                      : products.where((doc) {
-                          final data = doc.data() as Map<String, dynamic>;
-                          final name = (data['productName'] ?? '').toString().toLowerCase();
-                          final query = searchQuery.toLowerCase();
-                          return name.contains(query);
-                        }).toList();
+                  final filteredProducts = controller.filterProducts(products, searchQuery);
+                  
                   if (filteredProducts.isEmpty) {
                     return Center(
                       child: Text(
