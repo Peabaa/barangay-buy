@@ -152,7 +152,7 @@ class _ProductCardState extends State<ProductCard> {
               // Category and seller row
               Row(
                 children: [
-                  // Category container with compact width
+                  // Category container 
                   Container(
                     constraints: const BoxConstraints(
                       minWidth: 25,
@@ -186,7 +186,7 @@ class _ProductCardState extends State<ProductCard> {
                     ),
                   ),
                   const SizedBox(width: 6),
-                  // Seller name with more space
+                  // Seller name 
                   Expanded(
                     child: FutureBuilder<String>(
                       future: _controller.getSellerName(widget.productId),
