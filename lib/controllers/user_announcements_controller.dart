@@ -55,11 +55,7 @@ class UserAnnouncementsController {
   }
 
   void navigateToAnnouncements(BuildContext context) {
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
-        builder: (context) => const UserAnnouncements(),
-      ),
-    );
+    // Already on announcements page, no navigation needed
   }
 
   void navigateToSell(BuildContext context) {
