@@ -69,7 +69,7 @@ class _UserProfileState extends State<UserProfile> {
                   relHeight: relHeight,
                   selectedBarangay: selectedBarangay,
                   onNotificationTap: () {
-                    _controller.handleNotificationTap();
+                    _controller.navigateToNotifications(context);
                   },
                   onSearchChanged: (query) {
                     setState(() {

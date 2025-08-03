@@ -125,7 +125,7 @@ class _UserSellState extends State<UserSell> {
                   relHeight: relHeight,
                   selectedBarangay: selectedBarangay,
                   onNotificationTap: () {
-                    _controller.handleNotificationTap();
+                    _controller.navigateToNotifications(context);
                   },
                   onSearchChanged: (query) {
                     // For immediate search feedback, could add setState here if needed

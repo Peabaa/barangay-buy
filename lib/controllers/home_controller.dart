@@ -5,6 +5,7 @@ import '../models/home_model.dart';
 import '../views/user/user_announcements.dart';
 import '../views/user/user_sell.dart';
 import '../views/user/user_profile.dart';
+import '../views/user/user_notifications.dart';
 import '../views/user/category_products.dart';
 import '../views/user/search_results.dart';
 
@@ -96,8 +97,14 @@ class HomeController {
   }
 
   // Handle notification tap
-  void handleNotificationTap() {
-    print('Notification tapped');
+  // Navigate to notifications
+  void navigateToNotifications(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const UserNotificationsScreen(),
+      ),
+    );
   }
 
   // Handle search functionality

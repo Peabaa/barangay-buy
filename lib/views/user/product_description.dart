@@ -35,6 +35,9 @@ class _ProductDescriptionState extends State<ProductDescription> {
   bool isFavorite = false;
   Map<String, dynamic>? productDetails;
   bool isLoading = true;
+  
+  // Track reply visibility for each comment
+  Map<String, bool> _repliesVisibility = {};
 
   @override
   void initState() {
@@ -939,62 +942,59 @@ class _ProductDescriptionState extends State<ProductDescription> {
         final replies = replySnapshot.data?.docs ?? [];
         if (replies.isEmpty) return const SizedBox();
         
-        return StatefulBuilder(
-          builder: (context, setRepliesState) {
-            bool showReplies = false;
-            
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Toggle Replies Button
-                GestureDetector(
-                  onTap: () {
-                    setRepliesState(() {
-                      showReplies = !showReplies;
-                    });
-                  },
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: relWidth(60),
-                        height: 1,
-                        color: const Color(0xFF888888),
-                      ),
-                      SizedBox(width: relWidth(8)),
-                      Text(
-                        showReplies ? 'Hide Replies' : 'View Replies',
-                        style: TextStyle(
-                          color: const Color(0xFF888888),
-                          fontFamily: 'Roboto',
-                          fontSize: relWidth(14),
-                          fontWeight: FontWeight.w400,
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                      SizedBox(width: relWidth(4)),
-                      Icon(
-                        showReplies ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                        color: const Color(0xFF888888),
-                        size: relWidth(14),
-                      ),
-                    ],
+        final commentId = commentDoc.id;
+        final showReplies = _repliesVisibility[commentId] ?? false;
+        
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Toggle Replies Button
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _repliesVisibility[commentId] = !showReplies;
+                });
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: relWidth(60),
+                    height: 1,
+                    color: const Color(0xFF888888),
                   ),
-                ),
-                
-                // Replies List
-                if (showReplies) ...[
-                  ...replies.map((replyDoc) => _buildReplyItem(
-                    replyDoc,
-                    commentDoc.id,
-                    relWidth,
-                    relHeight,
-                  )),
-                  SizedBox(height: relHeight(8)),
+                  SizedBox(width: relWidth(8)),
+                  Text(
+                    showReplies ? 'Hide Replies' : 'View Replies',
+                    style: TextStyle(
+                      color: const Color(0xFF888888),
+                      fontFamily: 'Roboto',
+                      fontSize: relWidth(14),
+                      fontWeight: FontWeight.w400,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                  SizedBox(width: relWidth(4)),
+                  Icon(
+                    showReplies ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                    color: const Color(0xFF888888),
+                    size: relWidth(14),
+                  ),
                 ],
-              ],
-            );
-          },
+              ),
+            ),
+            
+            // Replies List
+            if (showReplies) ...[
+              ...replies.map((replyDoc) => _buildReplyItem(
+                replyDoc,
+                commentDoc.id,
+                relWidth,
+                relHeight,
+              )),
+              SizedBox(height: relHeight(8)),
+            ],
+          ],
         );
       },
     );

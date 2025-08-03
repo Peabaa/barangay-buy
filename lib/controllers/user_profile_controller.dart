@@ -5,6 +5,7 @@ import '../models/user_profile_model.dart';
 import '../views/user/home.dart';
 import '../views/user/user_announcements.dart';
 import '../views/user/user_sell.dart';
+import '../views/user/user_notifications.dart';
 import '../views/user/search_results.dart';
 import '../views/login_signup.dart';
 
@@ -390,8 +391,13 @@ class UserProfileController {
     }
   }
 
-  // Handle notification tap
-  void handleNotificationTap() {
-    // Placeholder for notification functionality
+  // Navigate to notifications
+  void navigateToNotifications(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const UserNotificationsScreen(),
+      ),
+    );
   }
 }

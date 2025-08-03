@@ -5,6 +5,7 @@ import '../views/user/home.dart';
 import '../views/user/user_announcements.dart';
 import '../views/user/user_sell.dart';
 import '../views/user/user_profile.dart';
+import '../views/user/user_notifications.dart';
 
 class SearchResultsController {
   final SearchResultsModel _model = SearchResultsModel();
@@ -71,8 +72,14 @@ class SearchResultsController {
   }
 
   // Handle notification tap
-  void handleNotificationTap() {
-    // Notification functionality can be implemented here
+  // Navigate to notifications
+  void navigateToNotifications(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const UserNotificationsScreen(),
+      ),
+    );
   }
 
   // Handle search functionality

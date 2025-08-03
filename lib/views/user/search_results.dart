@@ -38,7 +38,7 @@ class SearchResults extends StatelessWidget {
                     relHeight: relHeight,
                     selectedBarangay: barangay,
                     onNotificationTap: () {
-                      controller.handleNotificationTap();
+                      controller.navigateToNotifications(context);
                     },
                     onSearchChanged: (query) {
                       controller.handleSearchChanged(query);

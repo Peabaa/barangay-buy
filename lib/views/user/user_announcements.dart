@@ -67,7 +67,7 @@ class _UserAnnouncementsState extends State<UserAnnouncements> {
                 relHeight: relHeight,
                 selectedBarangay: selectedBarangay,
                 onNotificationTap: () {
-                  _controller.handleNotificationTap();
+                  _controller.navigateToNotifications(context);
                 },
                 onSearchChanged: (query) {
                   setState(() {

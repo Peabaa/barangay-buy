@@ -54,7 +54,7 @@ class _HomePageState extends State<HomePage> {
                 relHeight: relHeight,
                 selectedBarangay: selectedBarangay,
                 onNotificationTap: () {
-                  _controller.handleNotificationTap();
+                  _controller.navigateToNotifications(context);
                 },
                 onSearchChanged: (query) {
                   _controller.handleSearchChanged(query, (newQuery) {

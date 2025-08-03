@@ -5,6 +5,7 @@ import '../models/user_announcements_model.dart';
 import '../views/user/home.dart';
 import '../views/user/user_sell.dart';
 import '../views/user/user_profile.dart';
+import '../views/user/user_notifications.dart';
 import '../views/user/search_results.dart';
 
 class UserAnnouncementsController {
@@ -95,8 +96,13 @@ class UserAnnouncementsController {
     }
   }
 
-  // Handle notification tap
-  void handleNotificationTap() {
-    // Placeholder for notification functionality
+  // Navigate to notifications
+  void navigateToNotifications(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const UserNotificationsScreen(),
+      ),
+    );
   }
 }
