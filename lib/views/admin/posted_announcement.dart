@@ -14,7 +14,7 @@ class PostedAnnouncement extends StatefulWidget {
     required this.text,
     required this.username,
     required this.selectedBarangay,
-    required this.announcementId, // <-- add this
+    required this.announcementId,
     required this.timestamp,
   });
 
@@ -48,7 +48,7 @@ class _PostedAnnouncementState extends State<PostedAnnouncement> {
 
     final isOverflowing = PostedAnnouncementController.checkTextOverflow(
       _model.text,
-      relWidth(300) - relWidth(28), // container width minus padding
+      relWidth(300) - relWidth(28), 
       textStyle,
     );
 
@@ -170,7 +170,7 @@ class _PostedAnnouncementState extends State<PostedAnnouncement> {
                                   ),
                                 ),
                               ),
-                              SizedBox(height: relHeight(16)), // Optional: space between line and message
+                              SizedBox(height: relHeight(16)), 
                               Container(
                                 width: relWidth(232),
                                 height: relHeight(81),
@@ -228,7 +228,7 @@ class _PostedAnnouncementState extends State<PostedAnnouncement> {
               ],
             ),
           ),
-          SizedBox(height: relHeight(9)), // 9px space between username and text
+          SizedBox(height: relHeight(9)), 
           Padding(
             padding: EdgeInsets.symmetric(horizontal: relWidth(14)),
             child: Text(
