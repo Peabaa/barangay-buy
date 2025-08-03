@@ -1,14 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'home.dart';
 import 'user_posted_announcement.dart';
-import 'user_sell.dart';
-import 'user_profile.dart';
 import 'home_header_footer.dart';
-import 'search_results.dart';
+import '../../controllers/user_announcements_controller.dart';
+
 class UserAnnouncements extends StatefulWidget {
   const UserAnnouncements({super.key});
 
@@ -17,6 +13,7 @@ class UserAnnouncements extends StatefulWidget {
 }
 
 class _UserAnnouncementsState extends State<UserAnnouncements> {
+  final UserAnnouncementsController _controller = UserAnnouncementsController();
   String selectedBarangay = '';
   String _searchQuery = '';
   Future<List<Map<String, dynamic>>>? _announcementsFuture;
@@ -28,87 +25,20 @@ class _UserAnnouncementsState extends State<UserAnnouncements> {
   }
 
   Future<void> _fetchBarangay() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-      setState(() {
-        selectedBarangay = userDoc.data()?['barangay'] ?? '';
-        // Update the future when barangay changes
-        if (selectedBarangay.isNotEmpty) {
-          _announcementsFuture = _fetchAllAnnouncements();
-        }
-      });
-    }
-  }
-
-  Future<List<Map<String, dynamic>>> _fetchAllAnnouncements() async {
-    if (selectedBarangay.isEmpty) return [];
-
-    final List<Map<String, dynamic>> allAnnouncements = [];
-
-    try {
-      // 1. Fetch from general announcements collection
-      final generalAnnouncementsQuery = await FirebaseFirestore.instance
-          .collection('announcements')
-          .where('barangay', isEqualTo: selectedBarangay)
-          .get();
-
-      for (final doc in generalAnnouncementsQuery.docs) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        data['source'] = 'general';
-        allAnnouncements.add(data);
+    final barangay = await _controller.getCurrentUserBarangay();
+    setState(() {
+      selectedBarangay = barangay;
+      // Update the future when barangay changes
+      if (selectedBarangay.isNotEmpty) {
+        _announcementsFuture = _controller.fetchAllAnnouncements(selectedBarangay);
       }
-
-      // 2. Fetch admin announcements from users with role 'admin' and matching barangay
-      final adminUsersQuery = await FirebaseFirestore.instance
-          .collection('users')
-          .where('role', isEqualTo: 'admin')
-          .where('barangay', isEqualTo: selectedBarangay)
-          .get();
-
-      for (final adminUser in adminUsersQuery.docs) {
-        final adminAnnouncementsQuery = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(adminUser.id)
-            .collection('announcements')
-            .get();
-
-        for (final announcementDoc in adminAnnouncementsQuery.docs) {
-          final data = announcementDoc.data();
-          data['id'] = announcementDoc.id;
-          data['source'] = 'admin';
-          data['adminId'] = adminUser.id;
-          allAnnouncements.add(data);
-        }
-      }
-
-      // 3. Sort all announcements by timestamp (most recent first)
-      allAnnouncements.sort((a, b) {
-        final timestampA = a['timestamp'] as Timestamp?;
-        final timestampB = b['timestamp'] as Timestamp?;
-        
-        if (timestampA == null && timestampB == null) return 0;
-        if (timestampA == null) return 1;
-        if (timestampB == null) return -1;
-        
-        return timestampB.compareTo(timestampA);
-      });
-
-      return allAnnouncements;
-    } catch (e) {
-      // Handle error silently or use proper logging
-      return [];
-    }
+    });
   }
 
   Future<void> _refreshAnnouncements() async {
     if (selectedBarangay.isNotEmpty) {
       setState(() {
-        _announcementsFuture = _fetchAllAnnouncements();
+        _announcementsFuture = _controller.fetchAllAnnouncements(selectedBarangay);
       });
     }
   }
@@ -120,12 +50,7 @@ class _UserAnnouncementsState extends State<UserAnnouncements> {
     double relWidth(double dp) => screenWidth * (dp / 412);
     double relHeight(double dp) => screenHeight * (dp / 915);
 
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Color(0xFFFF5B29),
-        statusBarIconBrightness: Brightness.dark,
-      ),
-    );
+    _controller.setSystemUIOverlayStyle();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -141,25 +66,16 @@ class _UserAnnouncementsState extends State<UserAnnouncements> {
                 relWidth: relWidth,
                 relHeight: relHeight,
                 selectedBarangay: selectedBarangay,
-                onNotificationTap: () {},
+                onNotificationTap: () {
+                  _controller.handleNotificationTap();
+                },
                 onSearchChanged: (query) {
                   setState(() {
                     _searchQuery = query.toLowerCase();
                   });
                 },
                 onSearchSubmitted: (query) {
-                  if (query.trim().isNotEmpty) {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => SearchResults(
-                          searchQuery: query,
-                          barangay: selectedBarangay,
-                          relWidth: relWidth,
-                          relHeight: relHeight,
-                        ),
-                      ),
-                    );
-                  }
+                  _controller.navigateToSearchResults(context, query, selectedBarangay, relWidth, relHeight);
                 },
               ),
             ),
@@ -253,12 +169,7 @@ class _UserAnnouncementsState extends State<UserAnnouncements> {
                               final announcements = snapshot.data!;
                               
                               // Filter announcements based on search query
-                              final filteredAnnouncements = announcements.where((announcement) {
-                                if (_searchQuery.isEmpty) return true;
-                                final text = (announcement['text'] ?? '').toString().toLowerCase();
-                                final username = (announcement['username'] ?? '').toString().toLowerCase();
-                                return text.contains(_searchQuery) || username.contains(_searchQuery);
-                              }).toList();
+                              final filteredAnnouncements = _controller.filterAnnouncements(announcements, _searchQuery);
                               
                               if (filteredAnnouncements.isEmpty && _searchQuery.isNotEmpty) {
                                 return Align(
@@ -325,34 +236,10 @@ class _UserAnnouncementsState extends State<UserAnnouncements> {
       bottomNavigationBar: HomeFooter(
         relWidth: relWidth,
         relHeight: relHeight,
-        onStoreTap: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const HomePage(),
-            ),
-          );  
-        },
-        onAnnouncementTap: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const UserAnnouncements(),
-            ),
-          );
-        },
-        onSellTap: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const UserSell(),
-            ),
-          );
-        },
-        onProfileTap: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const UserProfile(),
-            ),
-          );
-        },
+        onStoreTap: () => _controller.navigateToHome(context),
+        onAnnouncementTap: () => _controller.navigateToAnnouncements(context),
+        onSellTap: () => _controller.navigateToSell(context),
+        onProfileTap: () => _controller.navigateToProfile(context),
         activeTab: 'announcements',
       ),
     );

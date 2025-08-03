@@ -6,6 +6,7 @@ import 'package:barangay_buy/views/user/home_header_footer.dart';
 import 'package:barangay_buy/views/user/home.dart';
 import 'package:barangay_buy/views/user/user_announcements.dart';
 import 'package:barangay_buy/views/user/user_sell.dart';
+import '../../controllers/user_notifications_controller.dart';
 
 class UserNotificationsScreen extends StatefulWidget {
   const UserNotificationsScreen({super.key});
@@ -15,6 +16,7 @@ class UserNotificationsScreen extends StatefulWidget {
 }
 
 class _UserNotificationsScreenState extends State<UserNotificationsScreen> {
+  final UserNotificationsController _controller = UserNotificationsController();
   String selectedBarangay = '';
   String? currentUserId;
   List<Map<String, dynamic>> notifications = [];
@@ -35,15 +37,11 @@ class _UserNotificationsScreenState extends State<UserNotificationsScreen> {
   }
 
   Future<void> _fetchUserBarangay() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      currentUserId = user.uid;
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
+    currentUserId = _controller.getCurrentUserId();
+    if (currentUserId != null) {
+      final barangay = await _controller.getCurrentUserBarangay();
       setState(() {
-        selectedBarangay = userDoc.data()?['barangay'] ?? '';
+        selectedBarangay = barangay;
       });
     }
   }
@@ -56,78 +54,8 @@ class _UserNotificationsScreenState extends State<UserNotificationsScreen> {
     });
 
     try {
-      List<Map<String, dynamic>> allNotifications = [];
-
-      // Fetch notifications from the notifications collection
-      final notificationsQuery = await FirebaseFirestore.instance
-          .collection('notifications')
-          .where('userId', isEqualTo: currentUserId)
-          .limit(50)
-          .get();
-
-      for (var notificationDoc in notificationsQuery.docs) {
-        final notificationData = notificationDoc.data();
-        allNotifications.add({
-          'type': notificationData['type'],
-          'timestamp': notificationData['timestamp'],
-          'username': notificationData['username'] ?? 'Unknown',
-          'productName': notificationData['productName'] ?? '',
-          'comment': notificationData['comment'] ?? '',
-          'reply': notificationData['reply'] ?? '',
-          'title': notificationData['title'] ?? '',
-          'color': _getNotificationColor(notificationData['type']),
-        });
-      }
-
-      // Fetch announcements from admin users in the same barangay
-      print('Fetching admin announcements for barangay: $selectedBarangay');
-      final adminUsersQuery = await FirebaseFirestore.instance
-          .collection('users')
-          .where('role', isEqualTo: 'admin')
-          .where('barangay', isEqualTo: selectedBarangay)
-          .get();
-
-      print('Found ${adminUsersQuery.docs.length} admin users');
-      for (final adminUser in adminUsersQuery.docs) {
-        final adminData = adminUser.data();
-        final adminUsername = adminData['username'] ?? 'Barangay Official';
-        print('Checking announcements for admin: $adminUsername (${adminUser.id})');
-        
-        final adminAnnouncementsQuery = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(adminUser.id)
-            .collection('announcements')
-            .limit(20)
-            .get();
-
-        print('Found ${adminAnnouncementsQuery.docs.length} announcements for admin: $adminUsername');
-        for (final announcementDoc in adminAnnouncementsQuery.docs) {
-          final announcementData = announcementDoc.data();
-          print('Adding announcement: ${announcementData['text'] ?? 'No text'}');
-          
-          allNotifications.add({
-            'type': 'announcement',
-            'timestamp': announcementData['timestamp'],
-            'username': adminUsername,
-            'productName': '',
-            'comment': '',
-            'reply': '',
-            'title': announcementData['text'] ?? announcementData['title'] ?? 'New Announcement',
-            'color': _getNotificationColor('announcement'),
-          });
-        }
-      }
-
-      // Sort all notifications by timestamp
-      allNotifications.sort((a, b) {
-        final aTime = a['timestamp'] as Timestamp?;
-        final bTime = b['timestamp'] as Timestamp?;
-        if (aTime == null && bTime == null) return 0;
-        if (aTime == null) return 1;
-        if (bTime == null) return -1;
-        return bTime.compareTo(aTime);
-      });
-
+      final allNotifications = await _controller.fetchAllNotifications(currentUserId!, selectedBarangay);
+      
       print('Total notifications found: ${allNotifications.length}');
       setState(() {
         notifications = allNotifications;
@@ -141,152 +69,10 @@ class _UserNotificationsScreenState extends State<UserNotificationsScreen> {
     }
   }
 
-  int _getNotificationColor(String type) {
-    switch (type) {
-      case 'comment':
-        return 0x7A53FFBA;
-      case 'favorite':
-        return 0x7329FF29;
-      case 'announcement':
-        return 0xFFF7B6B6;
-      case 'reply':
-        return 0xFFFFFFB6;
-      default:
-        return 0xFFE0E0E0;
-    }
-  }
-
-  // Helper method to create notifications (can be called from other parts of the app)
-  static Future<void> createNotification({
-    required String userId,
-    required String type,
-    required String username,
-    String? productName,
-    String? comment,
-    String? reply,
-    String? title,
-  }) async {
-    try {
-      await FirebaseFirestore.instance.collection('notifications').add({
-        'userId': userId,
-        'type': type,
-        'username': username,
-        'productName': productName,
-        'comment': comment,
-        'reply': reply,
-        'title': title,
-        'timestamp': FieldValue.serverTimestamp(),
-        'read': false,
-      });
-    } catch (e) {
-      print('Error creating notification: $e');
-    }
-  }
-
-  // Helper method to create announcement notifications for all users in a barangay
-  static Future<void> createAnnouncementNotifications({
-    required String adminUserId,
-    required String barangay,
-    required String title,
-    required String adminUsername,
-  }) async {
-    try {
-      // Get all users in the same barangay (excluding the admin who posted)
-      final usersQuery = await FirebaseFirestore.instance
-          .collection('users')
-          .where('barangay', isEqualTo: barangay)
-          .where('role', isNotEqualTo: 'admin')
-          .get();
-
-      // Create notification for each user
-      final batch = FirebaseFirestore.instance.batch();
-      for (var userDoc in usersQuery.docs) {
-        final notificationRef = FirebaseFirestore.instance.collection('notifications').doc();
-        batch.set(notificationRef, {
-          'userId': userDoc.id,
-          'type': 'announcement',
-          'username': adminUsername,
-          'productName': '',
-          'comment': '',
-          'reply': '',
-          'title': title,
-          'timestamp': FieldValue.serverTimestamp(),
-          'read': false,
-        });
-      }
-      
-      await batch.commit();
-    } catch (e) {
-      print('Error creating announcement notifications: $e');
-    }
-  }
-
-  String _formatTimestamp(Timestamp? timestamp) {
-    if (timestamp == null) return '';
-    final DateTime dateTime = timestamp.toDate();
-    final Duration difference = DateTime.now().difference(dateTime);
-    
-    if (difference.inMinutes < 1) {
-      return 'Just now';
-    } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}m ago';
-    } else if (difference.inHours < 24) {
-      return '${difference.inHours}h ago';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays}d ago';
-    } else {
-      return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
-    }
-  }
-
-  List<Map<String, dynamic>> _getTodayNotifications() {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    
-    return notifications.where((notification) {
-      final timestamp = notification['timestamp'] as Timestamp?;
-      if (timestamp == null) return false;
-      final notificationDate = timestamp.toDate();
-      final notificationDay = DateTime(notificationDate.year, notificationDate.month, notificationDate.day);
-      return notificationDay.isAtSameMomentAs(today);
-    }).toList();
-  }
-
-  List<Map<String, dynamic>> _getYesterdayNotifications() {
-    final now = DateTime.now();
-    final yesterday = DateTime(now.year, now.month, now.day - 1);
-    
-    return notifications.where((notification) {
-      final timestamp = notification['timestamp'] as Timestamp?;
-      if (timestamp == null) return false;
-      final notificationDate = timestamp.toDate();
-      final notificationDay = DateTime(notificationDate.year, notificationDate.month, notificationDate.day);
-      return notificationDay.isAtSameMomentAs(yesterday);
-    }).toList();
-  }
-
   Widget _buildNotificationItem(Map<String, dynamic> notification, double Function(double) relWidth, double Function(double) relHeight) {
-    String title = '';
-    String subtitle = '';
-    
-    switch (notification['type']) {
-      case 'comment':
-        title = 'Someone commented on your listing\n[${notification['productName']}]';
-        subtitle = '${notification['username']}: "${notification['comment']}"';
-        break;
-      case 'favorite':
-        title = 'Someone liked your listing [${notification['productName']}]';
-        subtitle = notification['username'];
-        break;
-      case 'announcement':
-        title = '${notification['username']} posted an announcement';
-        subtitle = notification['title'];
-        break;
-      case 'reply':
-        title = '${notification['username']} replied to your comment on\n[${notification['productName']}]';
-        subtitle = '${notification['username']}: ${notification['reply']}';
-        break;
-    }
+    final content = _controller.getNotificationContent(notification);
+    final title = content['title']!;
+    final subtitle = content['subtitle']!;
 
     return Center(
       child: Container(
@@ -351,7 +137,7 @@ class _UserNotificationsScreenState extends State<UserNotificationsScreen> {
             ),
             SizedBox(height: relHeight(4.0)),
             Text(
-              _formatTimestamp(notification['timestamp']),
+              _controller.formatTimestamp(notification['timestamp']),
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Color.fromRGBO(0, 0, 0, 0.31),
@@ -376,12 +162,7 @@ class _UserNotificationsScreenState extends State<UserNotificationsScreen> {
     double relWidth(double dp) => screenWidth * (dp / 412);
     double relHeight(double dp) => screenHeight * (dp / 915);
 
-    SystemChrome.setSystemUIOverlayStyle(
-      const SystemUiOverlayStyle(
-        statusBarColor: Color(0xFFFF5B29),
-        statusBarIconBrightness: Brightness.dark,
-      ),
-    );
+    _controller.setSystemUIOverlayStyle();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -428,7 +209,7 @@ class _UserNotificationsScreenState extends State<UserNotificationsScreen> {
               
               // TODAY NOTIFICATIONS
               ...() {
-                final todayNotifications = _getTodayNotifications();
+                final todayNotifications = _controller.getTodayNotifications(notifications);
                 if (todayNotifications.isEmpty) return <Widget>[];
                 
                 return [
@@ -456,7 +237,7 @@ class _UserNotificationsScreenState extends State<UserNotificationsScreen> {
               
               // YESTERDAY NOTIFICATIONS
               ...() {
-                final yesterdayNotifications = _getYesterdayNotifications();
+                final yesterdayNotifications = _controller.getYesterdayNotifications(notifications);
                 if (yesterdayNotifications.isEmpty) return <Widget>[];
                 
                 return [
@@ -484,16 +265,7 @@ class _UserNotificationsScreenState extends State<UserNotificationsScreen> {
               
               // OLDER NOTIFICATIONS
               ...() {
-                final olderNotifications = notifications.where((notification) {
-                  final timestamp = notification['timestamp'] as Timestamp?;
-                  if (timestamp == null) return false;
-                  final notificationDate = timestamp.toDate();
-                  final now = DateTime.now();
-                  final today = DateTime(now.year, now.month, now.day);
-                  final yesterday = DateTime(now.year, now.month, now.day - 1);
-                  final notificationDay = DateTime(notificationDate.year, notificationDate.month, notificationDate.day);
-                  return !notificationDay.isAtSameMomentAs(today) && !notificationDay.isAtSameMomentAs(yesterday);
-                }).toList();
+                final olderNotifications = _controller.getOlderNotifications(notifications);
                 
                 if (olderNotifications.isEmpty) return <Widget>[];
                 
@@ -559,30 +331,10 @@ class _UserNotificationsScreenState extends State<UserNotificationsScreen> {
       bottomNavigationBar: HomeFooter(
         relWidth: relWidth,
         relHeight: relHeight,
-        onStoreTap: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const HomePage(),
-            ),
-          );
-        },
-        onAnnouncementTap: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const UserAnnouncements(),
-            ),
-          );
-        },
-        onSellTap: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const UserSell(),
-            ),
-          );
-        },
-        onProfileTap: () {
-          Navigator.of(context).pop();
-        },
+        onStoreTap: () => _controller.navigateToHome(context),
+        onAnnouncementTap: () => _controller.navigateToAnnouncements(context),
+        onSellTap: () => _controller.navigateToSell(context),
+        onProfileTap: () => _controller.navigateToProfile(context),
         activeTab: 'none', // No tab is selected
       ),
     );
