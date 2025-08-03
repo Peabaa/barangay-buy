@@ -1,9 +1,7 @@
 
 import 'package:flutter/material.dart';
-
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'user/home.dart';
+import '../controllers/select_barangay_controller.dart';
+import '../models/select_barangay_model.dart';
 
 class SelectBarangay extends StatefulWidget {
   final bool isConfirm;
@@ -14,7 +12,19 @@ class SelectBarangay extends StatefulWidget {
 }
 
 class _SelectBarangayState extends State<SelectBarangay> {
-  String? selectedBarangay;
+  late SelectBarangayModel _model;
+
+  @override
+  void initState() {
+    super.initState();
+    _model = SelectBarangayModel(isConfirm: widget.isConfirm);
+  }
+
+  void _updateModel(SelectBarangayModel newModel) {
+    setState(() {
+      _model = newModel;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,9 +47,7 @@ class _SelectBarangayState extends State<SelectBarangay> {
             top: relHeight(40),
             left: relWidth(16),
             child: GestureDetector(
-              onTap: () {
-                Navigator.of(context).pop();
-              },
+              onTap: () => SelectBarangayController.handleBackNavigation(context),
               child: Image.asset(
                 'assets/images/back-square.png',
                 width: relWidth(57),
@@ -52,16 +60,11 @@ class _SelectBarangayState extends State<SelectBarangay> {
             child: Container(
               width: relWidth(347),
               height: relHeight(350),
-              decoration: BoxDecoration(
-                color: Color(0xFFFF5B29).withOpacity(0.57),
-                borderRadius: BorderRadius.circular(relWidth(23)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    offset: Offset(relWidth(8), relHeight(4)),
-                    blurRadius: relWidth(6),
-                  ),
-                ],
+              decoration: SelectBarangayController.getMainContainerDecoration(
+                relWidth(23),
+                relWidth(6),
+                relWidth(8),
+                relHeight(4),
               ),
               child: Padding(
                 padding: EdgeInsets.all(relWidth(60)),
@@ -70,35 +73,13 @@ class _SelectBarangayState extends State<SelectBarangay> {
                   children: [
                     Text(
                       'Welcome User!',
-                      style: TextStyle(
-                        fontFamily: 'RobotoCondensed',
-                        fontSize: relWidth(36),
-                        fontStyle: FontStyle.italic,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                        letterSpacing: 0.72,
-                        height: 1.17182,
-                        shadows: [
-                          Shadow(offset: Offset(1, 0), color: Color(0xFFA22304)),
-                          Shadow(offset: Offset(-1, 0), color: Color(0xFFA22304)),
-                          Shadow(offset: Offset(0, 1), color: Color(0xFFA22304)),
-                          Shadow(offset: Offset(0, -1), color: Color(0xFFA22304)),
-                        ],
-                      ),
+                      style: SelectBarangayController.getWelcomeTextStyle(relWidth(36)),
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: relHeight(13)),
                     Text(
                       'Select Your Barangay',
-                      style: TextStyle(
-                        fontFamily: 'Roboto',
-                        fontSize: relWidth(16),
-                        fontStyle: FontStyle.normal,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFFA22304),
-                        letterSpacing: 0.32,
-                        height: 1.17182,
-                      ),
+                      style: SelectBarangayController.getSubtitleTextStyle(relWidth(16)),
                       textAlign: TextAlign.center,
                     ),
                     SizedBox(height: relHeight(25)),
@@ -107,75 +88,33 @@ class _SelectBarangayState extends State<SelectBarangay> {
                       width: relWidth(238),
                       height: relHeight(35),
                       padding: EdgeInsets.symmetric(horizontal: relWidth(16)),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.8), 
-                        borderRadius: BorderRadius.circular(relWidth(23)),
-                        border: Border.all(
-                          color: Color(0xFF611A04), 
-                          width: 1, 
-                        ),
-                      ),
+                      decoration: SelectBarangayController.getDropdownContainerDecoration(relWidth(23)),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
-                          value: selectedBarangay,
+                          value: _model.selectedBarangay,
                           hint: Text(
                             'Barangay',
-                            style: TextStyle(
-                              fontFamily: 'Roboto',
-                              fontSize: relWidth(16),
-                              fontStyle: FontStyle.normal,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF611A04),
-                              letterSpacing: 0.32,
-                              height: 1.17182, 
-                            ),
+                            style: SelectBarangayController.getDropdownTextStyle(relWidth(16)),
                           ),
-                          style: TextStyle(
-                            fontFamily: 'Roboto',
-                            fontSize: relWidth(16),
-                            fontStyle: FontStyle.normal,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF611A04),
-                            letterSpacing: 0.32,
-                            height: 1.17182,
-                          ),
-                          icon: Icon(
+                          style: SelectBarangayController.getDropdownTextStyle(relWidth(16)),
+                          icon: const Icon(
                             Icons.keyboard_arrow_down,
                             color: Color(0xFF611A04),
                           ),
                           dropdownColor: Colors.white.withOpacity(0.95),
-                          items: [
-                            'Banilad',
-                            'Bulacao',
-                            'Day-as',
-                            'Ermita',
-                            'Guadalupe',
-                            'Inayawan',
-                            'Labangon',
-                            'Lahug',
-                            'Pari-an',
-                            'Pasil'
-                          ].map((String value) {
+                          items: _model.availableBarangays.map((String value) {
                             return DropdownMenuItem<String>(
                               value: value,
                               child: Text(
                                 value,
-                                style: TextStyle(
-                                  fontFamily: 'Roboto',
-                                  fontSize: relWidth(16),
-                                  fontStyle: FontStyle.normal,
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF611A04),
-                                  letterSpacing: 0.32,
-                                  height: 1.17182,
-                                ),
+                                style: SelectBarangayController.getDropdownTextStyle(relWidth(16)),
                               ),
                             );
                           }).toList(),
                           onChanged: (String? newValue) {
-                            setState(() {
-                              selectedBarangay = newValue;
-                            });
+                            _updateModel(
+                              SelectBarangayController.updateSelectedBarangay(_model, newValue),
+                            );
                           },
                         ),
                       ),
@@ -185,52 +124,33 @@ class _SelectBarangayState extends State<SelectBarangay> {
                     SizedBox(
                       width: relWidth(128),
                       child: ElevatedButton(
-                        onPressed: selectedBarangay != null
+                        onPressed: _model.canConfirm && !_model.isLoading
                             ? () async {
-                                final user = FirebaseAuth.instance.currentUser;
-                                if (user != null) {
-                                  try {
-                                    await FirebaseFirestore.instance
-                                        .collection('users')
-                                        .doc(user.uid)
-                                        .update({'barangay': selectedBarangay});
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Barangay saved!')),
-                                    );
-                                    // Navigate to HomePage
-                                    Navigator.of(context).pushAndRemoveUntil(
-                                      MaterialPageRoute(builder: (_) => const HomePage()),
-                                      (route) => false,
-                                    );
-                                  } catch (e) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Failed to save barangay.')),
-                                    );
-                                  }
-                                }
+                                await SelectBarangayController.confirmBarangay(
+                                  context: context,
+                                  model: _model,
+                                  onModelUpdate: _updateModel,
+                                );
                               }
                             : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Color(0xFFA22304),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(relWidth(23)),
-                          ),
-                          padding: EdgeInsets.zero,
+                        style: SelectBarangayController.getConfirmButtonStyle(
+                          borderRadius: relWidth(23),
+                          isEnabled: _model.canConfirm,
                         ),
-                        child: Text(
-                          'Confirm',
-                          style: TextStyle(
-                            fontFamily: 'Roboto',
-                            fontSize: relWidth(20),
-                            fontStyle: FontStyle.italic,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                            letterSpacing: 0.4,
-                            height: 1.17182,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
+                        child: _model.isLoading
+                            ? SizedBox(
+                                width: relWidth(20),
+                                height: relWidth(20),
+                                child: const CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : Text(
+                                'Confirm',
+                                style: SelectBarangayController.getConfirmButtonTextStyle(relWidth(20)),
+                                textAlign: TextAlign.center,
+                              ),
                       ),
                     ),
                   ],
