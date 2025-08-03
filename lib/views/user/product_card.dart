@@ -157,119 +157,156 @@ class _ProductCardState extends State<ProductCard> {
       child: Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(6.0),
+      child: Container(
+        constraints: BoxConstraints(
+          maxHeight: 160, // Limit maximum height
+          maxWidth: double.infinity,
+        ),
+        padding: const EdgeInsets.all(4.0), // Reduced padding
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(
-              height: 70,
+            // Image container with fixed height
+            Container(
+              height: 60, // Reduced height
               width: double.infinity,
-              child: imageBytes != null
-                  ? Image.memory(
-                      imageBytes,
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                    )
-                  : Container(
-                      color: Colors.grey[200],
-                      child: Center(child: Icon(Icons.image, size: 40, color: Colors.grey)),
-                    ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              widget.name,
-              style: TextStyle(
-                fontFamily: 'RobotoCondensed',
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: Colors.grey[200],
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: imageBytes != null
+                    ? Image.memory(
+                        imageBytes,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        height: double.infinity,
+                      )
+                    : Center(child: Icon(Icons.image, size: 30, color: Colors.grey)),
+              ),
             ),
+            SizedBox(height: 4), // Reduced spacing
+            // Product name with better constraints
+            Flexible(
+              child: Text(
+                widget.name,
+                style: TextStyle(
+                  fontFamily: 'RobotoCondensed',
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12, // Reduced font size
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            SizedBox(height: 2), // Reduced spacing
+            // Price and favorite row
             Row(
               children: [
-                Text('₱ ${widget.price}',
-                  style: TextStyle(
-                    fontFamily: 'RobotoCondensed',
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                    color: Color(0xFFD84315),
+                Flexible(
+                  child: Text(
+                    '₱ ${widget.price}',
+                    style: TextStyle(
+                      fontFamily: 'RobotoCondensed',
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13, // Reduced font size
+                      color: Color(0xFFD84315),
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                Spacer(),
+                SizedBox(width: 4),
                 GestureDetector(
                   onTap: _toggleFavorite,
                   child: Icon(
                     isFavorite ? Icons.favorite : Icons.favorite_border,
                     color: isFavorite ? Colors.red : Colors.red.withOpacity(0.5),
-                    size: 18,
+                    size: 16, // Reduced icon size
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 18),
-            Row(
-              children: [
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: getCategoryColor(widget.category),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    widget.category,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                Spacer(),
-                FutureBuilder<DocumentSnapshot>(
-                  future: FirebaseFirestore.instance.collection('products').doc(widget.productId).get(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return SizedBox(
-                        width: 80,
-                        height: 12,
-                        child: Center(
-                          child: SizedBox(
-                            width: 10,
-                            height: 10,
-                            child: CircularProgressIndicator(strokeWidth: 1.5),
-                          ),
-                        ),
-                      );
-                    }
-                    if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
-                      return Text(
-                        'by: -',
-                        style: TextStyle(fontSize: 10, color: Colors.grey[600]),
-                      );
-                    }
-                    final data = snapshot.data!.data() as Map<String, dynamic>?;
-                    final sellerName = data?['sellerName'] ?? '-';
-                    return Container(
-                      constraints: BoxConstraints(maxWidth: 80),
-                      child: Text(
-                        'by: $sellerName',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
-                          fontStyle: FontStyle.italic,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
+            SizedBox(height: 4), // Reduced spacing
+                         // Category and seller row
+             Row(
+               children: [
+                                                     // Category container with compact width
+                   Container(
+                     constraints: BoxConstraints(
+                       minWidth: 25, // Reduced minimum width
+                       maxWidth: 60, // Reduced maximum width for more space for seller name
+                     ),
+                     padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2), // Reduced padding
+                     decoration: BoxDecoration(
+                       color: getCategoryColor(widget.category),
+                       borderRadius: BorderRadius.circular(8),
+                       boxShadow: [
+                         BoxShadow(
+                           color: Colors.black.withOpacity(0.1),
+                           blurRadius: 1,
+                           offset: Offset(0, 1),
+                         ),
+                       ],
+                     ),
+                     child: Center(
+                       child: Text(
+                         widget.category,
+                         style: TextStyle(
+                           color: Colors.white,
+                           fontSize: 7, // Smaller font size for compact display
+                           fontWeight: FontWeight.w600,
+                           height: 1.1, // Tighter line height
+                         ),
+                         overflow: TextOverflow.ellipsis,
+                         maxLines: 1,
+                         textAlign: TextAlign.center,
+                       ),
+                     ),
+                   ),
+                 SizedBox(width: 6), // Increased spacing
+                 // Seller name with more space
+                 Expanded(
+                   child: FutureBuilder<DocumentSnapshot>(
+                     future: FirebaseFirestore.instance.collection('products').doc(widget.productId).get(),
+                     builder: (context, snapshot) {
+                       if (snapshot.connectionState == ConnectionState.waiting) {
+                         return SizedBox(
+                           height: 12,
+                           child: Center(
+                             child: SizedBox(
+                               width: 8,
+                               height: 8,
+                               child: CircularProgressIndicator(strokeWidth: 1),
+                             ),
+                           ),
+                         );
+                       }
+                       if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
+                         return Text(
+                           'by: -',
+                           style: TextStyle(fontSize: 9, color: Colors.grey[600]),
+                         );
+                       }
+                       final data = snapshot.data!.data() as Map<String, dynamic>?;
+                       final sellerName = data?['sellerName'] ?? '-';
+                       return Text(
+                         'by: $sellerName',
+                         style: TextStyle(
+                           fontSize: 9, // Slightly increased font size
+                           color: Colors.grey[600],
+                           fontWeight: FontWeight.w500,
+                           fontStyle: FontStyle.italic,
+                         ),
+                         overflow: TextOverflow.ellipsis,
+                         maxLines: 1,
+                       );
+                     },
+                   ),
+                 ),
+               ],
+             ),
           ],
         ),
       ),

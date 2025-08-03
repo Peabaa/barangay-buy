@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:barangay_buy/views/user/user_notifications.dart';
+import '../../controllers/home_header_footer_controller.dart';
 
-
-class HomeHeader extends StatelessWidget {
+class HomeHeader extends StatefulWidget {
   final double Function(double) relWidth;
   final double Function(double) relHeight;
   final String selectedBarangay;
@@ -21,28 +20,51 @@ class HomeHeader extends StatelessWidget {
   });
 
   @override
+  State<HomeHeader> createState() => _HomeHeaderState();
+}
+
+class _HomeHeaderState extends State<HomeHeader> {
+  final HomeHeaderFooterController _controller = HomeHeaderFooterController();
+  int _notificationCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotificationCount();
+  }
+
+  Future<void> _loadNotificationCount() async {
+    final count = await _controller.getNotificationCount();
+    if (mounted) {
+      setState(() {
+        _notificationCount = count;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
-      width: relWidth(415),
-      height: relHeight(98),
+      width: double.infinity,
+      height: widget.relHeight(98),
       color: const Color(0xFFFF5B29),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           // Current Barangay
           SizedBox(
-            width: relWidth(319),
+            width: widget.relWidth(319),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Padding(
-                  padding: EdgeInsets.only(left: relWidth(5)),
+                  padding: EdgeInsets.only(left: widget.relWidth(5)),
                   child: Container(
-                    width: relWidth(190),
-                    height: relHeight(23),
+                    width: widget.relWidth(190),
+                    height: widget.relHeight(23),
                     decoration: BoxDecoration(
                       color: Color(0xFFA22304).withOpacity(0.8),
-                      borderRadius: BorderRadius.circular(relWidth(23)),
+                      borderRadius: BorderRadius.circular(widget.relWidth(23)),
                       border: Border.all(
                         color: Color(0xFF611A04),
                         width: 1,
@@ -54,16 +76,16 @@ class HomeHeader extends StatelessWidget {
                         children: [
                           Image.asset(
                             'assets/images/location.png',
-                            width: relWidth(16),
-                            height: relWidth(16),
+                            width: widget.relWidth(16),
+                            height: widget.relWidth(16),
                           ),
-                          SizedBox(width: relWidth(5)),
+                          SizedBox(width: widget.relWidth(5)),
                           Flexible(
                             child: Text(
-                              'Brgy $selectedBarangay, Cebu City',
+                              'Brgy ${widget.selectedBarangay}, Cebu City',
                               style: TextStyle(
                                 fontFamily: 'Roboto',
-                                fontSize: relWidth(13),
+                                fontSize: widget.relWidth(13),
                                 fontStyle: FontStyle.italic,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.white,
@@ -84,70 +106,94 @@ class HomeHeader extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Notification button
+                // Notification button with badge
                 GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => UserNotificationsScreen(),
-                      ),
-                    );
+                  onTap: widget.onNotificationTap ?? () {
+                    _controller.navigateToNotifications(context);
                   },
-                  child: Container(
-                    width: relWidth(30),
-                    height: relWidth(30),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(relWidth(15)),
-                    ),
-                    child: Image.asset(
-                      'assets/images/notification.png',
-                      width: relWidth(24),
-                      height: relWidth(24),
-                    ),
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: widget.relWidth(30),
+                        height: widget.relWidth(30),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(widget.relWidth(15)),
+                        ),
+                        child: Image.asset(
+                          'assets/images/notification.png',
+                          width: widget.relWidth(24),
+                          height: widget.relWidth(24),
+                        ),
+                      ),
+                      if (_notificationCount > 0)
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: Container(
+                            padding: EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            constraints: BoxConstraints(
+                              minWidth: 16,
+                              minHeight: 16,
+                            ),
+                            child: Text(
+                              _notificationCount > 99 ? '99+' : _notificationCount.toString(),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: widget.relWidth(10),
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
-          SizedBox(height: relHeight(8)),
+          SizedBox(height: widget.relHeight(8)),
           // Search Bar
           Container(
-            width: relWidth(319),
-            height: relHeight(35),
+            width: widget.relWidth(319),
+            height: widget.relHeight(35),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.8),
-              borderRadius: BorderRadius.circular(relWidth(17.5)),
+              borderRadius: BorderRadius.circular(widget.relWidth(17.5)),
               border: Border.all(
                 color: Color(0xFF611A04),
                 width: 1,
               ),
             ),
             child: TextField(
-              onChanged: onSearchChanged,
-              onSubmitted: onSearchSubmitted,
+              onChanged: (query) => _controller.handleSearchChanged(query, widget.onSearchChanged),
+              onSubmitted: (query) => _controller.handleSearchSubmitted(query, widget.onSearchSubmitted),
               decoration: InputDecoration(
                 hintStyle: TextStyle(
                   color: Color(0xFF611A04).withOpacity(0.6),
-                  fontSize: relWidth(14),
+                  fontSize: widget.relWidth(14),
                 ),
                 prefixIcon: Icon(
                   Icons.search,
                   color: Color(0xFF611A04),
-                  size: relWidth(20),
+                  size: widget.relWidth(20),
                 ),
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.only(
-                  left: relWidth(50),
-                  right: relWidth(12),
-                  top: relHeight(10),
-                  bottom: relHeight(10),
+                  left: widget.relWidth(50),
+                  right: widget.relWidth(12),
+                  top: widget.relHeight(10),
+                  bottom: widget.relHeight(10),
                 ),
                 isDense: true,
               ),
               style: TextStyle(
                 color: Color(0xFF611A04),
-                fontSize: relWidth(14),
+                fontSize: widget.relWidth(14),
               ),
             ),
           ),
@@ -179,8 +225,10 @@ class HomeFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final HomeHeaderFooterController controller = HomeHeaderFooterController();
+
     return Container(
-      width: relWidth(412),
+      width: double.infinity,
       height: relHeight(98),
       color: const Color(0xFFFF5B29),
       child: Stack(
@@ -190,7 +238,7 @@ class HomeFooter extends StatelessWidget {
             left: relWidth(11),
             top: relHeight(11),
             child: GestureDetector(
-              onTap: onStoreTap ?? () {},
+              onTap: onStoreTap ?? () => controller.navigateToHome(context),
               child: Container(
                 width: relWidth(75),
                 height: relHeight(75),
@@ -225,7 +273,7 @@ class HomeFooter extends StatelessWidget {
             left: relWidth(127),
             top: relHeight(19),
             child: GestureDetector(
-              onTap: onAnnouncementTap ?? () {},
+              onTap: onAnnouncementTap ?? () => controller.navigateToAnnouncements(context),
               child: Container(
                 width: relWidth(60),
                 height: relWidth(60),
@@ -261,7 +309,7 @@ class HomeFooter extends StatelessWidget {
             left: relWidth(239),
             top: relHeight(19),
             child: GestureDetector(
-              onTap: onSellTap ?? () {},
+              onTap: onSellTap ?? () => controller.navigateToSell(context),
               child: Container(
                 width: relWidth(60),
                 height: relWidth(60),
@@ -297,7 +345,7 @@ class HomeFooter extends StatelessWidget {
             left: relWidth(336),
             top: relHeight(19),
             child: GestureDetector(
-              onTap: onProfileTap ?? () {},
+              onTap: onProfileTap ?? () => controller.navigateToProfile(context),
               child: Container(
                 width: relWidth(60),
                 height: relWidth(60),
