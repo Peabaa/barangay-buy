@@ -1413,7 +1413,8 @@ class _ProductDescriptionState extends State<ProductDescription> {
                     SizedBox(width: relWidth(16)),
                     GestureDetector(
                       onTap: () {
-                        Navigator.of(context).pop(true);
+                        Navigator.of(context).pop();
+                        onConfirm(); // Actually call the delete function
                       },
                       child: Container(
                         width: relWidth(90),

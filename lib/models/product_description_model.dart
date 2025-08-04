@@ -5,6 +5,35 @@ class ProductDescriptionModel {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  // Test Firestore permissions
+  Future<void> testFirestorePermissions() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        print('Test: User not authenticated');
+        return;
+      }
+      
+      print('Test: Testing Firestore permissions for user: ${user.uid}');
+      
+      // Test creating a test document
+      final testRef = _firestore.collection('test').doc('test_doc');
+      await testRef.set({'test': 'data', 'userId': user.uid});
+      print('Test: Successfully created test document');
+      
+      // Test reading the document
+      final testDoc = await testRef.get();
+      print('Test: Successfully read test document: ${testDoc.exists}');
+      
+      // Test deleting the document
+      await testRef.delete();
+      print('Test: Successfully deleted test document');
+      
+    } catch (e) {
+      print('Test: Firestore permission error: $e');
+    }
+  }
+
   // Get current user ID
   String? getCurrentUserId() {
     return _auth.currentUser?.uid;
@@ -275,32 +304,100 @@ class ProductDescriptionModel {
 
   // Delete comment
   Future<void> deleteComment(String productId, String commentId) async {
+    print('Model: Attempting to delete comment $commentId from product $productId');
+    
+    // Check if user is authenticated
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      print('Model: User is not authenticated');
+      throw Exception('User not authenticated');
+    }
+    print('Model: Current user ID: ${currentUser.uid}');
+    
     try {
-      await _firestore
+      final docRef = _firestore
           .collection('products')
           .doc(productId)
           .collection('comments')
-          .doc(commentId)
-          .delete();
+          .doc(commentId);
+          
+      print('Model: Document path: ${docRef.path}');
+      
+      // Check if document exists first and get its data
+      final docSnapshot = await docRef.get();
+      print('Model: Comment exists: ${docSnapshot.exists}');
+      
+      if (docSnapshot.exists) {
+        final data = docSnapshot.data();
+        final commenterId = data?['commenterId'];
+        print('Model: Comment owner ID: $commenterId');
+        print('Model: Current user ID: ${currentUser.uid}');
+        
+        // Check if user owns the comment
+        if (commenterId != currentUser.uid) {
+          print('Model: User does not own this comment');
+          throw Exception('User does not own this comment');
+        }
+        
+        await docRef.delete();
+        print('Model: Comment deleted successfully');
+      } else {
+        print('Model: Comment does not exist');
+        throw Exception('Comment does not exist');
+      }
     } catch (e) {
-      print('Error deleting comment: $e');
+      print('Model: Error deleting comment: $e');
       throw e;
     }
   }
 
   // Delete reply
   Future<void> deleteReply(String productId, String commentId, String replyId) async {
+    print('Model: Attempting to delete reply $replyId from comment $commentId in product $productId');
+    
+    // Check if user is authenticated
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) {
+      print('Model: User is not authenticated');
+      throw Exception('User not authenticated');
+    }
+    print('Model: Current user ID: ${currentUser.uid}');
+    
     try {
-      await _firestore
+      final docRef = _firestore
           .collection('products')
           .doc(productId)
           .collection('comments')
           .doc(commentId)
           .collection('replies')
-          .doc(replyId)
-          .delete();
+          .doc(replyId);
+          
+      print('Model: Document path: ${docRef.path}');
+      
+      // Check if document exists first and get its data
+      final docSnapshot = await docRef.get();
+      print('Model: Reply exists: ${docSnapshot.exists}');
+      
+      if (docSnapshot.exists) {
+        final data = docSnapshot.data();
+        final commenterId = data?['commenterId'];
+        print('Model: Reply owner ID: $commenterId');
+        print('Model: Current user ID: ${currentUser.uid}');
+        
+        // Check if user owns the reply
+        if (commenterId != currentUser.uid) {
+          print('Model: User does not own this reply');
+          throw Exception('User does not own this reply');
+        }
+        
+        await docRef.delete();
+        print('Model: Reply deleted successfully');
+      } else {
+        print('Model: Reply does not exist');
+        throw Exception('Reply does not exist');
+      }
     } catch (e) {
-      print('Error deleting reply: $e');
+      print('Model: Error deleting reply: $e');
       throw e;
     }
   }

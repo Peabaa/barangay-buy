@@ -149,18 +149,35 @@ class ProductDescriptionController {
 
   // Delete comment
   Future<void> deleteComment(String productId, String commentId) async {
-    await _model.deleteComment(productId, commentId);
+    print('Controller: Attempting to delete comment $commentId from product $productId');
+    try {
+      await _model.deleteComment(productId, commentId);
+      print('Controller: Comment deleted successfully');
+    } catch (e) {
+      print('Controller: Error deleting comment: $e');
+      rethrow;
+    }
   }
 
   // Delete reply
   Future<void> deleteReply(String productId, String commentId, String replyId) async {
-    await _model.deleteReply(productId, commentId, replyId);
+    print('Controller: Attempting to delete reply $replyId from comment $commentId in product $productId');
+    try {
+      await _model.deleteReply(productId, commentId, replyId);
+      print('Controller: Reply deleted successfully');
+    } catch (e) {
+      print('Controller: Error deleting reply: $e');
+      rethrow;
+    }
   }
 
   // Check if user owns comment/reply
   bool isOwnComment(String commenterId) {
     final currentUserId = _model.getCurrentUserId();
-    return currentUserId != null && commenterId == currentUserId;
+    print('Controller: Checking ownership - Current user: $currentUserId, Commenter: $commenterId');
+    final isOwner = currentUserId != null && commenterId == currentUserId;
+    print('Controller: Is owner: $isOwner');
+    return isOwner;
   }
 
   // Get comments stream
