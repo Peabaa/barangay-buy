@@ -242,6 +242,7 @@ class _UserSellState extends State<UserSell> {
                               padding: EdgeInsets.symmetric(horizontal: relWidth(10)),
                               child: TextField(
                                 controller: _productNameController,
+                                onChanged: (value) => setState(() {}), // Trigger validation update
                                 style: TextStyle(
                                   fontSize: relWidth(16),
                                   fontFamily: 'RobotoCondensed',
@@ -282,6 +283,7 @@ class _UserSellState extends State<UserSell> {
                               padding: EdgeInsets.symmetric(horizontal: relWidth(10)),
                               child: TextField(
                                 controller: _priceController,
+                                onChanged: (value) => setState(() {}), // Trigger validation update
                                 style: TextStyle(
                                   fontSize: relWidth(16),
                                   fontFamily: 'RobotoCondensed',
@@ -350,6 +352,7 @@ class _UserSellState extends State<UserSell> {
                                   onChanged: (String? newValue) {
                                     setState(() {
                                       selectedCategory = newValue!;
+                                      // This setState will also trigger _isFormComplete to be recalculated
                                     });
                                   },
                                 ),
@@ -405,6 +408,7 @@ class _UserSellState extends State<UserSell> {
                               padding: EdgeInsets.symmetric(horizontal: relWidth(10)),
                               child: TextField(
                                 controller: _descriptionController,
+                                onChanged: (value) => setState(() {}), // Trigger validation update
                                 maxLines: null,
                                 minLines: 4,
                                 decoration: InputDecoration(

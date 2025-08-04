@@ -34,12 +34,25 @@ class UserSellController {
     required String? category,
     required String description,
   }) {
-    return productName.trim().isNotEmpty &&
-        price.trim().isNotEmpty &&
-        double.tryParse(price.trim()) != null &&
-        double.parse(price.trim()) > 0 &&
-        category != null &&
-        description.trim().isNotEmpty;
+    final nameValid = productName.trim().isNotEmpty;
+    final priceNotEmpty = price.trim().isNotEmpty;
+    final priceValid = double.tryParse(price.trim()) != null;
+    final pricePositive = priceValid ? double.parse(price.trim()) > 0 : false;
+    final categoryValid = category != null;
+    final descriptionValid = description.trim().isNotEmpty;
+    
+    print('Form validation:');
+    print('- Product name valid: $nameValid ("${productName.trim()}")');
+    print('- Price not empty: $priceNotEmpty ("${price.trim()}")');
+    print('- Price valid number: $priceValid');
+    print('- Price positive: $pricePositive');
+    print('- Category selected: $categoryValid ($category)');
+    print('- Description valid: $descriptionValid ("${description.trim()}")');
+    
+    final isComplete = nameValid && priceNotEmpty && priceValid && pricePositive && categoryValid && descriptionValid;
+    print('- Form complete: $isComplete');
+    
+    return isComplete;
   }
 
   // Submit product
